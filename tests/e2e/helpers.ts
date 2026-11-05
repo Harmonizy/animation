@@ -23,12 +23,32 @@ export function canvasShot(page: Page): Promise<Buffer> {
 
 /** Seeks through the real slider, then waits until that exact time has been drawn. */
 export async function seekTo(page: Page, time: number): Promise<void> {
-  // fill() refuses values whose text changes when the slider snaps them to a frame.
-  await page.locator('#seek').evaluate((input: HTMLInputElement, value) => {
-    input.value = value;
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-  }, String(time));
+  const fps = Number(await page.locator('#preview').getAttribute('data-fps'));
+  await page.locator('#seek').fill(String(Math.round(time * fps)));
   await expect.poll(() => currentTime(page)).toBeCloseTo(time, 2);
+}
+
+export function currentFrame(page: Page): Promise<number> {
+  return page
+    .locator('#preview')
+    .getAttribute('data-frame')
+    .then((value) => Number(value));
+}
+
+/** Collects anything that should never happen during a test. */
+export function trackProblems(page: Page): string[] {
+  const problems: string[] = [];
+  page.on('pageerror', (error) => problems.push(`pageerror: ${error.message}`));
+  page.on('console', (message) => {
+    if (message.type() === 'error' || /webgl context/i.test(message.text())) {
+      problems.push(`console: ${message.text()}`);
+    }
+  });
+  page.on('requestfailed', (request) => problems.push(`requestfailed: ${request.url()}`));
+  page.on('response', (response) => {
+    if (response.status() >= 400) problems.push(`http ${response.status()}: ${response.url()}`);
+  });
+  return problems;
 }
 
 export interface Rgb {

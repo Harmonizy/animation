@@ -6,6 +6,7 @@ import {
   frameToTime,
   lastFrame,
   poseFrame,
+  poseIndex,
   timeToFrame,
   type ProjectFps,
   type TrackGroup,
@@ -87,6 +88,19 @@ export function resolveHold(
   trackHold?: number,
 ): number {
   return overrides.exposure?.[group] ?? trackHold ?? scene.exposure[group];
+}
+
+/** The pose number a group is showing on `frame`, counted as that group's tracks count it. */
+export function posePosition(
+  scene: Scene,
+  group: TrackGroup,
+  frame: number,
+  overrides: EvaluationOverrides = {},
+): number {
+  const fps = overrides.fps ?? scene.fps;
+  const anchor =
+    group === 'camera' ? firstFrameAtOrAfter(shotAtFrame(scene, frame, fps).start, fps) : 0;
+  return poseIndex(frame, resolveHold(scene, group, overrides), anchor);
 }
 
 function evaluateCamera(

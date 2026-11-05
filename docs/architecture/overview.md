@@ -74,9 +74,12 @@ a tool. This is a project note, not legal advice. Removing GSAP only requires re
 | 16:9, 9:16, 1:1 preview; responsive workspace              | Implemented    |
 | Camera rotation control in the UI                          | Planned        |
 | Reverse playback                                           | Planned        |
-| Parallax, transitions, animation events, presets           | Planned        |
+| Palette tokens, SVG path parts, depth planes, parallax     | Implemented    |
+| Poses, pose tracks, silhouette and grayscale review        | Implemented    |
+| Three style laboratories and test mannequin                | Implemented    |
+| Transitions, animation events, presets                     | Planned        |
 | Cinematography metadata (shot size, angle, movement)       | Planned        |
-| SVG assets, character rigging                              | Planned        |
+| External SVG file import, advanced character rigging       | Planned        |
 | Scene authoring, storyboards                               | Planned        |
 | Audio, frame rendering, video export                       | Planned        |
 | Three.js renderer                                          | Planned        |
@@ -92,5 +95,6 @@ a tool. This is a project note, not legal advice. Removing GSAP only requires re
 6. **Phase 5:** frame rendering, audio synchronization and video export.
 7. **Phase 6:** production optimization and collaboration features.
 
-Authorized so far: Phases 0 and 1, plus the timing engine and Timing Lab from Phase 2. The rest of
+Authorized so far: Phases 0 and 1, plus the timing engine, Timing Lab and Cinematic Minimalist
+Silhouette foundation from Phases 2 and 3. The rest of
 Phase 2 and later phases need approval.

@@ -235,9 +235,12 @@ input[type='range'] {
   font-weight: 600;
 }
 
-#view-link {
+#view-nav {
   margin-left: auto;
-  color: var(--accent);
+}
+
+#view-nav select {
+  max-width: 200px;
 }
 
 select,
@@ -252,7 +255,7 @@ input[type='number'] {
   font: inherit;
 }
 
-:is(select, a):focus-visible {
+select:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
@@ -411,4 +414,28 @@ h3 {
   #play {
     width: 60px;
   }
+}
+
+#part-sheet {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px;
+}
+
+#part-sheet figure {
+  margin: 0;
+  color: var(--text);
+  text-align: center;
+}
+
+#part-sheet svg {
+  display: block;
+  width: 100%;
+  height: 64px;
+}
+
+#part-sheet figcaption {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 11px;
 }

@@ -2,6 +2,7 @@ import {
   evaluateFrame,
   posePosition,
   resolveHold,
+  type DisplayMode,
   type EvaluationOverrides,
 } from '../core/evaluate';
 import { ASPECT_RATIOS, fitAspect, isAspectRatioName, type AspectRatioName } from '../core/framing';
@@ -19,13 +20,20 @@ import { Clock } from '../playback/clock';
 import type { Renderer } from '../render/types';
 import { el, panelSection, select } from './dom';
 import { createTransport } from './transport';
+import { createViewNav } from './viewNav';
 
 export interface StudioOptions {
   readonly project: Project;
   readonly scene: Scene;
   readonly createRenderer: () => Renderer;
-  /** Initial time or frame and aspect ratio, for reproducible links and screenshots. */
+  /** Initial time or frame, aspect ratio, display and palette, for reproducible links. */
   readonly params: URLSearchParams;
+  /** The current page, for the view selector. */
+  readonly view: string;
+  /** Named palettes to choose between. Without these the scene's own palette is used. */
+  readonly palettes?: Readonly<Record<string, Readonly<Record<string, string>>>>;
+  /** An extra panel section, such as a sheet of reusable parts. */
+  readonly extraPanel?: { readonly title: string; readonly content: HTMLElement };
 }
 
 export interface Studio {
@@ -46,6 +54,16 @@ function slider(id: string, label: string, min: number, max: number, step: numbe
   const output = el('output', { for: id });
   const row = el('div', { class: 'slider-row' }, el('label', { for: id }, label), input, output);
   return { input, output, row };
+}
+
+const DISPLAY_OPTIONS = [
+  ['normal', 'Normal'],
+  ['silhouette', 'Silhouette (black fill)'],
+  ['grayscale', 'Grayscale (values)'],
+] as const;
+
+function isDisplayMode(value: string | null): value is DisplayMode {
+  return DISPLAY_OPTIONS.some(([mode]) => mode === value);
 }
 
 const CAMERA_PAN_RANGE = 400;
@@ -69,6 +87,11 @@ export async function createStudio(root: HTMLElement, options: StudioOptions): P
   let fps: ProjectFps = scene.fps;
   let exportFps: ProjectFps = scene.exportFps;
   let exposure: Partial<Record<TrackGroup, number>> = {};
+  const initialDisplay = params.get('display');
+  let display: DisplayMode = isDisplayMode(initialDisplay) ? initialDisplay : 'normal';
+  const paletteNames = Object.keys(options.palettes ?? {});
+  const initialPalette = params.get('palette') ?? '';
+  let paletteName = paletteNames.includes(initialPalette) ? initialPalette : null;
   /** Root nodes from back to front. */
   const defaultOrder = scene.nodes
     .filter((node) => node.parent === undefined)
@@ -84,6 +107,8 @@ export async function createStudio(root: HTMLElement, options: StudioOptions): P
     layers: layerOverrides,
     fps,
     exposure,
+    display,
+    ...(paletteName === null ? {} : { palette: options.palettes?.[paletteName] ?? {} }),
   });
 
   const preview = el('div', { id: 'preview', 'aria-label': 'Animation preview', role: 'img' });
@@ -164,6 +189,14 @@ export async function createStudio(root: HTMLElement, options: StudioOptions): P
     return { group, pose, reset, row };
   });
 
+  const displaySelect = select('display', DISPLAY_OPTIONS, display, 'Display mode');
+  const paletteSelect = select(
+    'palette',
+    [['', 'Scene palette'], ...paletteNames.map((name) => [name, name] as const)],
+    paletteName ?? '',
+    'Palette',
+  );
+
   const panel = el(
     'aside',
     { id: 'panel' },
@@ -174,6 +207,20 @@ export async function createStudio(root: HTMLElement, options: StudioOptions): P
         { class: 'segmented', role: 'group', 'aria-label': 'Aspect ratio' },
         ...aspectButtons,
       ),
+    ),
+    panelSection(
+      'Look',
+      el('div', { class: 'field-row' }, el('label', { for: 'display' }, 'Display'), displaySelect),
+      ...(paletteNames.length > 0
+        ? [
+            el(
+              'div',
+              { class: 'field-row' },
+              el('label', { for: 'palette' }, 'Palette'),
+              paletteSelect,
+            ),
+          ]
+        : []),
     ),
     panelSection(
       'Timing',
@@ -191,6 +238,9 @@ export async function createStudio(root: HTMLElement, options: StudioOptions): P
     ),
     panelSection('Camera offset', panX.row, panY.row, zoom.row, cameraReset),
     panelSection('Layers (top first)', layerList, layersReset),
+    ...(options.extraPanel
+      ? [panelSection(options.extraPanel.title, options.extraPanel.content)]
+      : []),
   );
   const header = el(
     'header',
@@ -201,7 +251,7 @@ export async function createStudio(root: HTMLElement, options: StudioOptions): P
       { id: 'project-label' },
       project.kind === 'technical-demo' ? `Technical demo: ${project.name}` : project.name,
     ),
-    el('a', { id: 'view-link', href: '?view=timing' }, 'Timing Lab'),
+    createViewNav(options.view),
   );
   root.replaceChildren(header, stage, panel, transport.element);
 
@@ -309,6 +359,14 @@ export async function createStudio(root: HTMLElement, options: StudioOptions): P
   exportSelect.addEventListener('change', () => {
     exportFps = Number(exportSelect.value) as ProjectFps;
     refresh();
+  });
+  displaySelect.addEventListener('change', () => {
+    display = isDisplayMode(displaySelect.value) ? displaySelect.value : 'normal';
+    refresh(true);
+  });
+  paletteSelect.addEventListener('change', () => {
+    paletteName = paletteSelect.value === '' ? null : paletteSelect.value;
+    refresh(true);
   });
   timingReset.addEventListener('click', () => {
     fps = scene.fps;

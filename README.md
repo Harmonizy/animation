@@ -3,8 +3,8 @@
 A foundation for Animation-as-Code: scenes are validated data, every frame is a pure function of
 time, and rendering sits behind an interface.
 
-**Status: Phase 1 foundation, plus the Phase 2 timing engine.** The only content is a neutral technical demo and a Timing Lab, made of geometric
-shapes. It is a systems test, not artwork. See [project status](docs/ai/PROJECT_STATUS.md).
+**Status: Phase 1 foundation, timing engine and visual style foundation.** The only content is neutral technical demos and labs, with geometric
+shapes and an anonymous test mannequin. It is a systems test, not artwork. See [project status](docs/ai/PROJECT_STATUS.md).
 
 ## Setup
 
@@ -34,14 +34,16 @@ Then open the URL Vite prints, normally `http://localhost:5173`.
 
 ## Studio URL parameters
 
-| Parameter | Example        | Effect                                              |
-| --------- | -------------- | --------------------------------------------------- |
-| `t`       | `?t=2.5`       | Opens at a time in seconds                          |
-| `frame`   | `?frame=75`    | Opens at a frame number, counted from 0             |
-| `view`    | `?view=timing` | Opens the Animation Timing Lab                      |
-| `tab`     | `?tab=spacing` | Lab tab: `fps`, `exposure`, `spacing` or `timing`   |
-| `aspect`  | `?aspect=9:16` | Opens with `16:9`, `9:16` or `1:1`                  |
-| `debug`   | `?debug=1`     | Exposes `window.__studioDebug` for lifecycle checks |
+| Parameter | Example               | Effect                                              |
+| --------- | --------------------- | --------------------------------------------------- |
+| `t`       | `?t=2.5`              | Opens at a time in seconds                          |
+| `frame`   | `?frame=75`           | Opens at a frame number, counted from 0             |
+| `view`    | `?view=timing`        | `timing`, `geometric`, `articulated`, `atmospheric` |
+| `display` | `?display=silhouette` | `normal`, `silhouette` or `grayscale`               |
+| `palette` | `?palette=cool`       | In style labs: `warm`, `cool` or `inverted`         |
+| `tab`     | `?tab=spacing`        | Lab tab: `fps`, `exposure`, `spacing` or `timing`   |
+| `aspect`  | `?aspect=9:16`        | Opens with `16:9`, `9:16` or `1:1`                  |
+| `debug`   | `?debug=1`            | Exposes `window.__studioDebug` for lifecycle checks |
 
 ## Documentation
 
@@ -53,10 +55,9 @@ Then open the URL Vite prints, normally `http://localhost:5173`.
 - AI collaboration: [AGENTS.md](AGENTS.md), [CLAUDE.md](CLAUDE.md),
   [status](docs/ai/PROJECT_STATUS.md), [handoff](docs/ai/HANDOFF.md),
   [review checklist](docs/ai/REVIEW_CHECKLIST.md)
+- Visual style: [Cinematic Minimalist Silhouette](docs/creative/visual-style.md)
 - Creative knowledge base: [docs/creative](docs/creative/character-design.md) and
   [references](docs/REFERENCES.md)
-- Proposal awaiting approval:
-  [Cinematic Minimalist Silhouette](docs/proposals/cinematic-minimalist-silhouette.md)
 
 ## Third-party licensing
 

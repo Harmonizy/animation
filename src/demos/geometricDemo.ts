@@ -35,7 +35,7 @@ function referenceGrid(): NodeInput[] {
  * It exercises tracks, easing, hierarchy, pivots, layering, opacity and a camera cut.
  */
 export const geometricDemo: ProjectInput = {
-  schemaVersion: 2,
+  schemaVersion: 3,
   id: 'geometric-demo',
   name: 'Geometric technical demo',
   kind: 'technical-demo',

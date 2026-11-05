@@ -16,7 +16,7 @@ type SceneInput = ProjectInput['scenes'][number];
 /** Two nodes moving 1 world unit per frame at 24 fps, in different groups. */
 function sceneOf(changes: Partial<SceneInput> = {}): Scene {
   const scene = parseProject({
-    schemaVersion: 2,
+    schemaVersion: 3,
     id: 'test',
     name: 'Test',
     kind: 'technical-demo',

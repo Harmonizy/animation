@@ -9,7 +9,7 @@ type SceneInput = ProjectInput['scenes'][number];
 
 function sceneOf(changes: Partial<SceneInput>): Scene {
   const scene = parseProject({
-    schemaVersion: 2,
+    schemaVersion: 3,
     id: 'test',
     name: 'Test',
     kind: 'technical-demo',

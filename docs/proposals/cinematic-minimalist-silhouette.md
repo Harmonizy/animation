@@ -1,7 +1,11 @@
 # Proposal: Cinematic Minimalist Silhouette
 
-**Status: awaiting owner approval. Nothing here is implemented.** It overlaps Phases 2 and 3, which are
-not yet authorized beyond the timing engine. It comes after the timing engine and builds on it.
+**Status: approved by the owner and implemented on 2026-11-05.** This is kept as the historical plan.
+The current guide is [visual style](../creative/visual-style.md). The two open questions used the
+recommended defaults: Claude drew the parts as simple SVG paths, and palettes are neutral test colors.
+
+Differences from this plan: labs open with `?view=` rather than `?lab=`. Parallax is baked into world
+matrices rather than `FrameState` carrying one per plane. A `foreground` token was added after review.
 
 ## Goal
 
@@ -125,10 +129,3 @@ and timeline scrubbing. The existing transport and aspect controls are shared.
 | Evaluation cost grows with rigs                       | Measure with Playwright, then cache only if needed                         |
 | The result may look generic even if technically sound | Treat lab results as evidence, and iterate with owner review               |
 | GSAP license limits on no-code visual tools           | Owner reads the license before any distribution of a visual authoring tool |
-
-## Decisions needed
-
-1. Approve this scope as an early part of Phases 2-3?
-2. Mannequin parts: authored by Claude as simple SVG paths, or supplied by the owner?
-3. Starting palette: use neutral test tokens and let the owner choose later, or does the owner have a
-   reference?

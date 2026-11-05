@@ -4,6 +4,7 @@ import { Clock } from '../../playback/clock';
 import type { Renderer } from '../../render/types';
 import { el, panelSection, select } from '../../studio/dom';
 import { createTransport } from '../../studio/transport';
+import { createViewNav } from '../../studio/viewNav';
 import {
   LAB_DURATION,
   LAB_TABS,
@@ -114,7 +115,7 @@ export async function createTimingLab(root: HTMLElement, options: TimingLabOptio
     { id: 'header' },
     el('h1', {}, 'Animation Timing Lab'),
     el('span', { id: 'project-label' }, 'Technical demo: neutral shapes'),
-    el('a', { id: 'view-link', href: '?' }, 'Studio'),
+    createViewNav('timing'),
   );
   root.classList.add('lab-view');
   root.replaceChildren(header, stage, panel, transport.element);

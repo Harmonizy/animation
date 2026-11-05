@@ -35,7 +35,7 @@ function referenceGrid(): NodeInput[] {
  * It exercises tracks, easing, hierarchy, pivots, layering, opacity and a camera cut.
  */
 export const geometricDemo: ProjectInput = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   id: 'geometric-demo',
   name: 'Geometric technical demo',
   kind: 'technical-demo',
@@ -44,6 +44,7 @@ export const geometricDemo: ProjectInput = {
       id: 'shapes',
       duration: 8,
       fps: 30,
+      exportFps: 30,
       background: '#12141c',
       safeArea: { x: -540, y: -540, width: 1080, height: 1080 },
       nodes: [
@@ -116,8 +117,20 @@ export const geometricDemo: ProjectInput = {
         },
       ],
       tracks: [
+        // A slow drift, so background exposure has a visible effect.
+        {
+          target: 'grid',
+          property: 'x',
+          group: 'background',
+          keyframes: [
+            { time: 0, value: 0, easing: 'easeInOut' },
+            { time: 4, value: 40, easing: 'easeInOut' },
+            { time: 8, value: 0 },
+          ],
+        },
         {
           target: 'square',
+          group: 'character',
           property: 'x',
           keyframes: [
             { time: 0, value: -280, easing: 'easeInOut' },
@@ -127,6 +140,7 @@ export const geometricDemo: ProjectInput = {
         },
         {
           target: 'square',
+          group: 'character',
           property: 'rotation',
           keyframes: [
             { time: 0, value: 0 },
@@ -135,6 +149,7 @@ export const geometricDemo: ProjectInput = {
         },
         {
           target: 'circle',
+          group: 'character',
           property: 'scaleX',
           keyframes: [
             { time: 0, value: 1, easing: 'easeInOut' },
@@ -144,6 +159,7 @@ export const geometricDemo: ProjectInput = {
         },
         {
           target: 'circle',
+          group: 'character',
           property: 'scaleY',
           keyframes: [
             { time: 0, value: 1, easing: 'easeInOut' },
@@ -153,6 +169,7 @@ export const geometricDemo: ProjectInput = {
         },
         {
           target: 'triangle',
+          group: 'secondary',
           property: 'opacity',
           keyframes: [
             { time: 0, value: 0.45, easing: 'easeInOut' },
@@ -162,6 +179,7 @@ export const geometricDemo: ProjectInput = {
         },
         {
           target: 'hub',
+          group: 'secondary',
           property: 'rotation',
           keyframes: [
             { time: 0, value: 0 },
@@ -170,6 +188,7 @@ export const geometricDemo: ProjectInput = {
         },
         {
           target: 'satellite',
+          group: 'secondary',
           property: 'rotation',
           keyframes: [
             { time: 0, value: 0 },

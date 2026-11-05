@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { EASING_NAMES } from './easing';
+import { PROJECT_FPS, TRACK_GROUPS } from './timing';
 
 export const NODE_PROPERTIES = ['x', 'y', 'rotation', 'scaleX', 'scaleY', 'opacity'] as const;
 export const CAMERA_PROPERTIES = ['x', 'y', 'zoom', 'rotation'] as const;
@@ -32,17 +33,34 @@ const keyframes = z
     }
   });
 
+/** How many project frames each pose stays on screen. */
+const Hold = z.number().int().min(1);
+const Fps = z.literal(PROJECT_FPS);
+
 /** Times are in scene seconds. */
 const NodeTrackSchema = z.strictObject({
   target: Id,
   property: z.enum(NODE_PROPERTIES),
+  /** Decides which exposure setting the track follows. Camera tracks always use `camera`. */
+  group: z.enum(TRACK_GROUPS.filter((group) => group !== 'camera')).default('character'),
+  /** Overrides the scene's exposure for this track. */
+  hold: Hold.optional(),
   keyframes,
 });
 
 /** Times are in seconds relative to the start of the owning shot. */
 const CameraTrackSchema = z.strictObject({
   property: z.enum(CAMERA_PROPERTIES),
+  /** Overrides the scene's camera exposure for this track. */
+  hold: Hold.optional(),
   keyframes,
+});
+
+const ExposureSchema = z.strictObject({
+  character: Hold.default(1),
+  camera: Hold.default(1),
+  background: Hold.default(1),
+  secondary: Hold.default(1),
 });
 
 const CameraSchema = z.strictObject({
@@ -116,7 +134,9 @@ const SceneSchema = z
   .strictObject({
     id: Id,
     duration: z.number().positive(),
-    fps: z.number().int().positive(),
+    fps: Fps,
+    exportFps: Fps,
+    exposure: ExposureSchema.prefault({}),
     background: Color,
     /** World-space region guaranteed visible at zoom 1 in every aspect ratio. */
     safeArea: RectSchema,
@@ -187,7 +207,7 @@ const SceneSchema = z
   });
 
 export const ProjectSchema = z.strictObject({
-  schemaVersion: z.literal(1),
+  schemaVersion: z.literal(2),
   id: Id,
   name: z.string().min(1),
   /** Keeps technical demonstrations clearly apart from production content. */
@@ -206,6 +226,26 @@ export type Camera = Shot['camera'];
 export type Keyframe = z.output<typeof KeyframeSchema>;
 export type Rect = Scene['safeArea'];
 
+export type Exposure = Scene['exposure'];
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+/** Version 2 added export FPS and exposure. Version 1 scenes export at their own FPS. */
+function migrateV1(project: Record<string, unknown>): Record<string, unknown> {
+  const scenes = Array.isArray(project['scenes']) ? (project['scenes'] as unknown[]) : [];
+  return {
+    ...project,
+    schemaVersion: 2,
+    scenes: scenes.map((scene) =>
+      isRecord(scene) ? { exportFps: scene['fps'], ...scene } : scene,
+    ),
+  };
+}
+
+/** Validates project data, upgrading it from older schema versions first. */
 export function parseProject(data: unknown): Project {
-  return ProjectSchema.parse(data);
+  const current = isRecord(data) && data['schemaVersion'] === 1 ? migrateV1(data) : data;
+  return ProjectSchema.parse(current);
 }

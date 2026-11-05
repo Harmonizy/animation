@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import data from '../../../projects/harmonie/hollow-bell-crypt/episode.json';
+import data from '../../../projects/harmonie/hollow-bell-crypt/episode.json' with { type: 'json' };
 
 /**
  * The episode's single source of truth for timing, text, sound and prices, validated on load.

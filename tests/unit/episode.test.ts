@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { evaluateFrame } from '../../src/core/evaluate';
+import { nodeBounds, type Bounds } from '../../src/core/framing';
+import { IDENTITY } from '../../src/core/matrix';
 import { parseProject } from '../../src/core/schema';
 import {
   EPISODE,
@@ -11,7 +13,7 @@ import {
 } from '../../src/episodes/hollow-bell-crypt/episode';
 import { hollowBellCryptProject } from '../../src/episodes/hollow-bell-crypt/scene';
 import { episodeTextFiles } from '../../src/episodes/hollow-bell-crypt/subtitles';
-import data from '../../projects/harmonie/hollow-bell-crypt/episode.json';
+import data from '../../projects/harmonie/hollow-bell-crypt/episode.json' with { type: 'json' };
 
 const PRICES = {
   torch: 1,
@@ -144,5 +146,31 @@ describe('episode scene', () => {
     for (const frame of [0, 66, 700, 1439]) {
       expect(evaluateFrame(scene, frame)).toEqual(evaluateFrame(scene, frame));
     }
+  });
+
+  it('ends with the hand close to the items but touching none of them', () => {
+    const overlaps = (a: Bounds, b: Bounds) =>
+      a.minX < b.maxX && b.minX < a.maxX && a.minY < b.maxY && b.minY < a.maxY;
+    let closest = Infinity;
+    for (let frame = 53 * 24; frame < 1440; frame++) {
+      const nodes = evaluateFrame(scene, frame).nodes.filter((node) => node.worldOpacity > 0);
+      const bounds = (pattern: RegExp) =>
+        nodes
+          .filter((node) => pattern.test(node.id))
+          .map((node) => nodeBounds(node, IDENTITY))
+          .filter((b): b is Bounds => b !== null);
+      const hand = bounds(/^S12-glove-(palm|thumb|index|middle|ring|little)/);
+      const cards = bounds(/^S12-card-.*-paper$/);
+      for (const h of hand) {
+        for (const c of cards) expect(overlaps(h, c), `frame ${frame}`).toBe(false);
+      }
+      if (hand.length > 0 && cards.length > 0) {
+        const top = Math.min(...hand.map((h) => h.minY));
+        const bottom = Math.max(...cards.map((c) => c.maxY));
+        closest = Math.min(closest, top - bottom);
+      }
+    }
+    // Close enough to read as a reach: within about the width of a finger.
+    expect(closest).toBeLessThan(60);
   });
 });

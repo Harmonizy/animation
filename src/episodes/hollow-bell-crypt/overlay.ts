@@ -67,12 +67,16 @@ function subtitles(build: Build): void {
 /** Where each shot's emphasis text sits. Chosen per shot so it never covers the subject. */
 const EMPHASIS_Y: Record<string, number> = {
   S01: -560,
-  S02: -640,
+  S02: -420,
   S06: -600,
-  S12: -770,
+  S12: -860,
 };
 
+/** Shots that set their emphasis inside the picture, such as on a document, draw it themselves. */
+export const EMPHASIS_IN_SHOT = new Set(['S02']);
+
 function emphasis(build: Build, shot: EpisodeShot): void {
+  if (EMPHASIS_IN_SHOT.has(shot.id)) return;
   shot.emphasis.forEach((entry, i) => {
     const root = build.root(`${shot.id}-emphasis-${i}`, 'screen', shot.start, shot.end);
     const y = EMPHASIS_Y[shot.id] ?? -600;
@@ -100,11 +104,12 @@ function finalQuestion(build: Build): void {
   if (!shot?.question || !shot.callToAction) return;
   const root = build.root('final-question', 'screen', shot.question.start, 60);
   const cta = shot.callToAction;
-  const box = build.add('final-cta', root, { kind: 'group' }, { y: 640, opacity: 0 });
-  build.add('final-cta-card', box, path(roundedRect(560, 104, 52), tk('void')), { opacity: 0.72 });
-  build.add('final-cta-card-edge', box, path(roundedRectRing(560, 104, 52, 3), tk('amberGold')));
-  build.add('final-cta-th', box, text(cta.th, 36, tk('warmIvory'), { weight: 600 }), { y: -16 });
-  build.add('final-cta-en', box, text(cta.en, 26, tk('warmIvory')), { y: 26, opacity: 0.8 });
+  // Under the budget header and above the item grid, clear of the platform's lower interface.
+  const box = build.add('final-cta', root, { kind: 'group' }, { y: -756, opacity: 0 });
+  build.add('final-cta-card', box, path(roundedRect(560, 96, 48), tk('void')), { opacity: 0.8 });
+  build.add('final-cta-card-edge', box, path(roundedRectRing(560, 96, 48, 3), tk('amberGold')));
+  build.add('final-cta-th', box, text(cta.th, 34, tk('warmIvory'), { weight: 600 }), { y: -15 });
+  build.add('final-cta-en', box, text(cta.en, 26, tk('warmIvory')), { y: 24, opacity: 0.85 });
   build.track(box, 'opacity', fadeKeys(shot.question.start + 0.2, 60, 0.4), { hold: 1 });
 }
 

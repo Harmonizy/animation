@@ -231,6 +231,52 @@ export function pointedArch(width: number, height: number): string {
   ].join(' ');
 }
 
+/** Points along a pointed arch opening, from bottom left, over the apex, to bottom right. */
+export function archCurve(width: number, height: number, steps = 14): Pt[] {
+  const w = width / 2;
+  const spring = height - width * 0.85;
+  const cubic = (a: Pt, b: Pt, c: Pt, d: Pt, t: number): Pt => {
+    const u = 1 - t;
+    return [
+      u * u * u * a[0] + 3 * u * u * t * b[0] + 3 * u * t * t * c[0] + t * t * t * d[0],
+      u * u * u * a[1] + 3 * u * u * t * b[1] + 3 * u * t * t * c[1] + t * t * t * d[1],
+    ];
+  };
+  const left: Pt[] = [
+    [-w, 0],
+    [-w, -spring],
+  ];
+  const right: Pt[] = [];
+  for (let i = 1; i <= steps; i++) {
+    left.push(
+      cubic(
+        [-w, -spring],
+        [-w, -spring - w * 0.9],
+        [-w * 0.35, -height + w * 0.15],
+        [0, -height],
+        i / steps,
+      ),
+    );
+    right.push(
+      cubic(
+        [0, -height],
+        [w * 0.35, -height + w * 0.15],
+        [w, -spring - w * 0.9],
+        [w, -spring],
+        i / steps,
+      ),
+    );
+  }
+  return [...left, ...right, [w, 0]];
+}
+
+/** An open arch frame: the stone band around an opening, with nothing filled inside. */
+export function archFrame(width: number, height: number, band: number): string {
+  const outer = archCurve(width + band * 2, height + band);
+  const inner = archCurve(width, height).reverse();
+  return poly([...outer, ...inner]);
+}
+
 /** A ring (annulus) as one outline, for ripples and coin rims. Pixi fills it as a band. */
 export function ring(radiusX: number, radiusY: number, thickness: number, segments = 48): string {
   const outer: Pt[] = [];

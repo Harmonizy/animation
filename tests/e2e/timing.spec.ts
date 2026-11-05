@@ -307,9 +307,9 @@ test.describe('timing lab', () => {
 
   test('is reachable from the studio and back', async ({ page }) => {
     await openStudio(page);
-    await page.locator('#view-link').click();
+    await page.locator('#view-select').selectOption('timing');
     await expect(page.locator('h1')).toHaveText('Animation Timing Lab');
-    await page.locator('#view-link').click();
+    await page.locator('#view-select').selectOption('');
     await expect(page.locator('h1')).toHaveText('Cinematic Animation Studio');
   });
 

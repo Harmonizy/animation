@@ -75,3 +75,59 @@ for (const tab of LAB_TABS) {
     });
   }
 }
+
+/** 0, 25, 50, 75 and 100% of the 8 s labs, on the 24 fps grid, plus the frame after a cut. */
+const STYLE_LAB_TIMES = [0, 2, 4, 6, 191 / 24];
+const STYLE_LABS = ['geometric', 'articulated', 'atmospheric'] as const;
+const STYLE_SETUPS = [
+  { name: '16x9', viewport: VIEWPORTS.landscape, aspect: '16:9', display: 'normal' },
+  { name: '1x1', viewport: VIEWPORTS.landscape, aspect: '1:1', display: 'normal' },
+  { name: '9x16', viewport: VIEWPORTS.portrait, aspect: '9:16', display: 'normal' },
+  { name: 'silhouette', viewport: VIEWPORTS.landscape, aspect: '16:9', display: 'silhouette' },
+  { name: 'grayscale', viewport: VIEWPORTS.landscape, aspect: '16:9', display: 'grayscale' },
+] as const;
+
+for (const lab of STYLE_LABS) {
+  for (const setup of STYLE_SETUPS) {
+    test(`capture style lab ${lab} ${setup.name}`, async ({ page }) => {
+      const directory = join(OUTPUT, `style-${lab}-${setup.name}`);
+      mkdirSync(directory, { recursive: true });
+      await page.setViewportSize(setup.viewport);
+      await openStudio(page, `?view=${lab}&aspect=${setup.aspect}&display=${setup.display}`);
+
+      for (const time of STYLE_LAB_TIMES) {
+        await seekTo(page, time);
+        await page.locator('#preview canvas').screenshot({ path: join(directory, fileName(time)) });
+        if (time === 4) await page.screenshot({ path: join(directory, 'workspace.png') });
+      }
+      await contactSheet(page, directory, STYLE_LAB_TIMES);
+    });
+  }
+}
+
+test('capture walk cycle strip', async ({ page }) => {
+  // Consecutive poses of one full cycle, on ones, to judge the walk without live motion.
+  const directory = join(OUTPUT, 'style-articulated-walk');
+  mkdirSync(directory, { recursive: true });
+  await page.setViewportSize(VIEWPORTS.landscape);
+  await openStudio(page, '?view=articulated&display=silhouette');
+  await page.locator('#exposure-character').selectOption('1');
+  const times = Array.from({ length: 9 }, (_, index) => (126 + index * 3) / 24);
+  for (const time of times) {
+    await seekTo(page, time);
+    await page.locator('#preview canvas').screenshot({ path: join(directory, fileName(time)) });
+  }
+  await contactSheet(page, directory, times);
+});
+
+for (const lab of STYLE_LABS) {
+  for (const palette of ['cool', 'inverted', 'warm'] as const) {
+    test(`capture style lab ${lab} palette ${palette}`, async ({ page }) => {
+      const directory = join(OUTPUT, `style-${lab}-palette-${palette}`);
+      mkdirSync(directory, { recursive: true });
+      await page.setViewportSize(VIEWPORTS.landscape);
+      await openStudio(page, `?view=${lab}&palette=${palette}&t=3`);
+      await page.locator('#preview canvas').screenshot({ path: join(directory, 't-03.00.png') });
+    });
+  }
+}

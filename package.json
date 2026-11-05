@@ -19,9 +19,12 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test --project=e2e",
     "capture": "playwright test --project=capture",
-    "build:harmonie": "node scripts/build-harmonie.mjs"
+    "build:harmonie": "node scripts/build-harmonie.mjs",
+    "build:episode": "node scripts/build-episode.mjs",
+    "render:episode": "node scripts/render-episode.mjs"
   },
   "dependencies": {
+    "@fontsource/noto-sans-thai": "^5.3.0",
     "gsap": "3.15.1",
     "pixi.js": "8.22.0",
     "zod": "4.6.7"

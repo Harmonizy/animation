@@ -1,0 +1,52 @@
+1
+00:00:00,250 --> 00:00:03,850
+Harmonie has only one gold piece left.
+
+2
+00:00:04,250 --> 00:00:08,850
+Thirty gold awaits beneath the Hollow Bell Crypt.
+
+3
+00:00:09,250 --> 00:00:13,850
+Each bell toll shifts the paths below.
+
+4
+00:00:14,250 --> 00:00:18,850
+The watchers follow light and sound.
+
+5
+00:00:19,250 --> 00:00:23,850
+The whispers imitate familiar voices.
+
+6
+00:00:24,250 --> 00:00:27,850
+Her last gold is worth ten silver.
+
+7
+00:00:28,250 --> 00:00:32,850
+Torch: 1. Chalk: 1. Light and a trail.
+
+8
+00:00:33,250 --> 00:00:37,850
+Rope: 4. A way across the broken bridge.
+
+9
+00:00:38,250 --> 00:00:42,850
+Earplugs: 2. Block whispers and warnings.
+
+10
+00:00:43,250 --> 00:00:47,850
+Bandages: 3. Decoy bell: 5.
+
+11
+00:00:48,250 --> 00:00:52,850
+Rations: 2. If she's trapped for days.
+
+12
+00:00:53,250 --> 00:00:57,400
+She can't afford everything.
+What should Harmonie take?
+
+13
+00:00:57,500 --> 00:01:00,000
+What should Harmonie buy?

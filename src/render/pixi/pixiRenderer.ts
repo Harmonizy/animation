@@ -1,5 +1,5 @@
-import { Application, Container, Graphics, Matrix } from 'pixi.js';
-import type { FrameState } from '../../core/evaluate';
+import { Application, Container, FillGradient, Graphics, Matrix, Text } from 'pixi.js';
+import type { EvaluatedNode, FrameState, GradientStop } from '../../core/evaluate';
 import { viewTransform, type Size } from '../../core/framing';
 import type { Mat2D } from '../../core/matrix';
 import type { Shape } from '../../core/schema';
@@ -9,11 +9,91 @@ import type { Renderer } from '../types';
 /** Keeps previews sharp on dense screens without paying for every physical pixel. */
 const MAX_RESOLUTION = 2;
 
+/** The studio typeface. Loaded by the page before anything with text is drawn. */
+export const STUDIO_FONT = '"Noto Sans Thai", "Noto Sans", sans-serif';
+
+/** Text is rasterised at this multiple, so it stays sharp when a camera move scales it up. */
+const TEXT_RESOLUTION = 2;
+
 interface DrawnNode {
-  readonly graphics: Graphics;
+  readonly display: Graphics | Text;
   shape: Shape;
-  fill: string | null;
+  /** Everything that decides how the node looks, so it is only redrawn when that changes. */
+  key: string;
 }
+
+const alphaHex = (opacity: number) =>
+  Math.round(Math.min(1, Math.max(0, opacity)) * 255)
+    .toString(16)
+    .padStart(2, '0');
+
+function gradientFill(
+  type: 'vertical' | 'horizontal' | 'radial',
+  stops: readonly GradientStop[],
+): FillGradient {
+  const colorStops = stops.map((stop) => ({
+    offset: stop.offset,
+    color: `${stop.color}${alphaHex(stop.opacity)}`,
+  }));
+  if (type === 'radial') {
+    return new FillGradient({
+      type: 'radial',
+      center: { x: 0.5, y: 0.5 },
+      innerRadius: 0,
+      outerCenter: { x: 0.5, y: 0.5 },
+      outerRadius: 0.5,
+      colorStops,
+      textureSpace: 'local',
+    });
+  }
+  return new FillGradient({
+    type: 'linear',
+    start: { x: 0, y: 0 },
+    end: type === 'vertical' ? { x: 0, y: 1 } : { x: 1, y: 0 },
+    colorStops,
+    textureSpace: 'local',
+  });
+}
+
+function createDisplay(node: EvaluatedNode): Graphics | Text {
+  return node.shape.kind === 'text'
+    ? new Text({ text: '', resolution: TEXT_RESOLUTION })
+    : new Graphics();
+}
+
+function drawText(text: Text, shape: Extract<Shape, { kind: 'text' }>, fill: string | null): void {
+  text.text = shape.content;
+  text.style = {
+    fontFamily: STUDIO_FONT,
+    fontSize: shape.fontSize,
+    fontWeight: String(shape.fontWeight) as '400',
+    fill: fill ?? '#000000',
+    align: shape.align,
+    lineHeight: shape.fontSize * shape.lineHeight,
+    letterSpacing: shape.letterSpacing,
+    padding: Math.ceil(shape.fontSize * 0.3),
+  };
+  text.anchor.set(shape.align === 'left' ? 0 : shape.align === 'right' ? 1 : 0.5, 0.5);
+}
+
+function drawNode(display: Graphics | Text, node: EvaluatedNode): void {
+  if (display instanceof Text) {
+    if (node.shape.kind === 'text') drawText(display, node.shape, node.fill);
+    return;
+  }
+  if (node.shape.kind === 'gradient') {
+    display.clear();
+    const { width, height } = node.shape;
+    const fill = gradientFill(node.shape.type, node.gradient ?? []);
+    if (node.shape.type === 'radial') display.ellipse(0, 0, width / 2, height / 2).fill(fill);
+    else display.rect(-width / 2, -height / 2, width, height).fill(fill);
+    return;
+  }
+  drawShape(display, node.shape, node.fill);
+}
+
+const lookKey = (node: EvaluatedNode) =>
+  node.gradient ? `${node.fill}|${JSON.stringify(node.gradient)}` : String(node.fill);
 
 function tracePath(graphics: Graphics, d: string): void {
   for (const command of parseSvgPath(d)) {
@@ -63,6 +143,10 @@ function drawShape(graphics: Graphics, shape: Shape, fill: string | null): void 
       tracePath(graphics, shape.d);
       graphics.fill(fill);
       break;
+    case 'text':
+    case 'gradient':
+      // Drawn by drawNode, which needs more than one fill color.
+      break;
   }
 }
 
@@ -102,19 +186,22 @@ export class PixiRenderer implements Renderer {
 
     frame.nodes.forEach((node, drawIndex) => {
       let entry = this.drawn.get(node.id);
+      const key = lookKey(node);
       if (!entry) {
-        entry = { graphics: new Graphics(), shape: node.shape, fill: node.fill };
-        drawShape(entry.graphics, node.shape, node.fill);
-        this.world.addChild(entry.graphics);
+        entry = { display: createDisplay(node), shape: node.shape, key };
+        drawNode(entry.display, node);
+        this.world.addChild(entry.display);
         this.drawn.set(node.id, entry);
-      } else if (entry.shape !== node.shape || entry.fill !== node.fill) {
+      } else if (entry.shape !== node.shape || entry.key !== key) {
         entry.shape = node.shape;
-        entry.fill = node.fill;
-        drawShape(entry.graphics, node.shape, node.fill);
+        entry.key = key;
+        drawNode(entry.display, node);
       }
-      this.applyMatrix(entry.graphics, node.worldMatrix);
-      entry.graphics.alpha = node.worldOpacity;
-      entry.graphics.zIndex = drawIndex;
+      this.applyMatrix(entry.display, node.worldMatrix);
+      entry.display.alpha = node.worldOpacity;
+      // Fully transparent nodes are skipped, which keeps scenes with many hidden shots fast.
+      entry.display.visible = node.worldOpacity > 0;
+      entry.display.zIndex = drawIndex;
     });
 
     if (this.drawn.size > frame.nodes.length) this.removeNodesMissingFrom(frame);
@@ -132,7 +219,7 @@ export class PixiRenderer implements Renderer {
     const present = new Set(frame.nodes.map((node) => node.id));
     for (const [id, entry] of this.drawn) {
       if (present.has(id)) continue;
-      entry.graphics.destroy();
+      entry.display.destroy();
       this.drawn.delete(id);
     }
   }

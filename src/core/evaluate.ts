@@ -46,11 +46,19 @@ export interface EvaluationOverrides {
   readonly display?: DisplayMode;
 }
 
+export interface GradientStop {
+  readonly offset: number;
+  readonly color: string;
+  readonly opacity: number;
+}
+
 export interface EvaluatedNode {
   readonly id: string;
   readonly shape: Shape;
   /** The final color, with tokens resolved. Null for a node that draws nothing. */
   readonly fill: string | null;
+  /** Gradient stops with tokens resolved, for gradient shapes only. */
+  readonly gradient?: readonly GradientStop[];
   readonly layer: number;
   /** Maps the node's local space to world space. */
   readonly worldMatrix: Mat2D;
@@ -317,10 +325,19 @@ export function evaluateFrame(
       if ('fill' in node.shape) {
         fill = display === 'silhouette' ? SILHOUETTE_FILL : resolveColor(node.shape.fill);
       }
+      const gradient =
+        node.shape.kind === 'gradient'
+          ? node.shape.stops.map((stop) => ({
+              offset: stop.offset,
+              color: display === 'silhouette' ? SILHOUETTE_FILL : resolveColor(stop.color),
+              opacity: stop.opacity,
+            }))
+          : undefined;
       nodes.push({
         id: node.id,
         shape: node.shape,
         fill,
+        ...(gradient ? { gradient } : {}),
         layer: layerOf(node),
         worldMatrix,
         worldOpacity,

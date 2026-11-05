@@ -110,6 +110,43 @@ const ShapeSchema = z.discriminatedUnion('kind', [
     d: z.string().refine(isValidSvgPath, 'Unsupported or malformed SVG path'),
     fill: ColorRef,
   }),
+  /**
+   * Text in the studio typeface (Noto Sans Thai, which also covers Latin). The block is centred
+   * vertically on the node's origin, and `align` places it horizontally. Lines break only at "\n",
+   * because Thai has no spaces to break at.
+   */
+  z.strictObject({
+    kind: z.literal('text'),
+    content: z.string(),
+    fontSize: z.number().positive(),
+    fontWeight: z
+      .union([z.literal(400), z.literal(500), z.literal(600), z.literal(700)])
+      .default(400),
+    fill: ColorRef,
+    align: z.enum(['left', 'center', 'right']).default('center'),
+    /** Distance between baselines, as a multiple of the font size. */
+    lineHeight: z.number().positive().default(1.35),
+    letterSpacing: z.number().default(0),
+  }),
+  /**
+   * A rectangle, centred on the origin, filled with a gradient: top to bottom, left to right, or
+   * from the centre outwards to the inscribed ellipse. Used for light, fog and atmosphere.
+   */
+  z.strictObject({
+    kind: z.literal('gradient'),
+    type: z.enum(['vertical', 'horizontal', 'radial']),
+    width: z.number().positive(),
+    height: z.number().positive(),
+    stops: z
+      .array(
+        z.strictObject({
+          offset: z.number().min(0).max(1),
+          color: ColorRef,
+          opacity: z.number().min(0).max(1).default(1),
+        }),
+      )
+      .min(2),
+  }),
 ]);
 
 const TransformSchema = z.strictObject({
@@ -242,6 +279,11 @@ const SceneSchema = z
 
     scene.nodes.forEach((node, i) => {
       if ('fill' in node.shape) checkColor(node.shape.fill, ['nodes', i, 'shape', 'fill']);
+      if (node.shape.kind === 'gradient') {
+        node.shape.stops.forEach((stop, s) =>
+          checkColor(stop.color, ['nodes', i, 'shape', 'stops', s, 'color']),
+        );
+      }
       if (node.plane !== undefined) {
         if (node.parent !== undefined) issue(['nodes', i, 'plane'], 'Only root nodes have a plane');
         if (!planeIds.has(node.plane))

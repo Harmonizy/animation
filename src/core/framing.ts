@@ -70,6 +70,30 @@ function shapeOutline(shape: Shape): readonly Point[] {
       return shape.points;
     case 'path':
       return flattenSvgPath(shape.d);
+    case 'gradient': {
+      const x = shape.width / 2;
+      const y = shape.height / 2;
+      return [
+        { x: -x, y: -y },
+        { x, y: -y },
+        { x, y },
+        { x: -x, y },
+      ];
+    }
+    case 'text': {
+      // An estimate: renderers measure real text, but bounds must not depend on fonts.
+      const lines = shape.content.split('\n');
+      const longest = Math.max(...lines.map((line) => line.length));
+      const width = longest * shape.fontSize * 0.55;
+      const height = lines.length * shape.fontSize * shape.lineHeight;
+      const left = shape.align === 'left' ? 0 : shape.align === 'right' ? -width : -width / 2;
+      return [
+        { x: left, y: -height / 2 },
+        { x: left + width, y: -height / 2 },
+        { x: left + width, y: height / 2 },
+        { x: left, y: height / 2 },
+      ];
+    }
   }
 }
 

@@ -1,0 +1,91 @@
+{
+  "language": "th-TH",
+  "perspective": "third person",
+  "direction": "Calm, serious, mysterious. Natural storytelling, moderate pace, brief pauses at the ellipses. No shouting, no announcer delivery.",
+  "lines": [
+    {
+      "shot": "S01",
+      "text": "ฮาร์โมนีเหลือเงินอยู่เพียง... หนึ่งจีพี",
+      "start": 0.35,
+      "end": 3.7,
+      "maxDuration": 3.35
+    },
+    {
+      "shot": "S02",
+      "text": "แต่มีค่าจ้างสามสิบจีพี รออยู่ใต้สุสานระฆังกลวง",
+      "start": 4.35,
+      "end": 8.7,
+      "maxDuration": 4.35
+    },
+    {
+      "shot": "S03",
+      "text": "ว่ากันว่า ทุกเสียงระฆังเปลี่ยนทางเดินในสุสาน",
+      "start": 9.35,
+      "end": 13.7,
+      "maxDuration": 4.35
+    },
+    {
+      "shot": "S04",
+      "text": "ผู้เฝ้าสุสานจะตามแสงไฟ... และทุกเสียงที่ดัง",
+      "start": 14.35,
+      "end": 18.7,
+      "maxDuration": 4.35
+    },
+    {
+      "shot": "S05",
+      "text": "เสียงกระซิบยังเลียนเสียงคนที่เธอคุ้นเคย",
+      "start": 19.35,
+      "end": 23.7,
+      "maxDuration": 4.35
+    },
+    {
+      "shot": "S06",
+      "text": "เงินหนึ่งจีพีของเธอ เท่ากับสิบเหรียญเงิน",
+      "start": 24.35,
+      "end": 27.7,
+      "maxDuration": 3.35
+    },
+    {
+      "shot": "S07",
+      "text": "คบไฟหนึ่งเงิน ชอล์กหนึ่งเงิน แสงกับรอยทาง",
+      "start": 28.35,
+      "end": 32.7,
+      "maxDuration": 4.35
+    },
+    {
+      "shot": "S08",
+      "text": "เชือกสี่เงิน อาจช่วยข้ามสะพานหินที่ขาด",
+      "start": 33.35,
+      "end": 37.7,
+      "maxDuration": 4.35
+    },
+    {
+      "shot": "S09",
+      "text": "ขี้ผึ้งอุดหูสองเงิน ช่วยกันเสียงลวง แต่กลบเสียงเตือน",
+      "start": 38.35,
+      "end": 42.7,
+      "maxDuration": 4.35
+    },
+    {
+      "shot": "S10",
+      "text": "ผ้าพันแผลสามเงิน... หรือระฆังล่อเงาห้าเงิน",
+      "start": 43.35,
+      "end": 47.7,
+      "maxDuration": 4.35
+    },
+    {
+      "shot": "S11",
+      "text": "เสบียงสองเงิน หากทางออกหายไปหลายวัน",
+      "start": 48.35,
+      "end": 52.7,
+      "maxDuration": 4.35
+    },
+    {
+      "shot": "S12",
+      "text": "แต่เธอซื้อทุกอย่างไม่ได้... ฮาร์โมนีควรเลือกอะไร?",
+      "start": 53.35,
+      "end": 57.3,
+      "maxDuration": 3.95
+    }
+  ]
+}

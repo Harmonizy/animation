@@ -31,7 +31,13 @@ export default tseslint.config(
     'Only src/render/pixi may import pixi.js, and only src/playback may import gsap.',
   ),
   restrict(
-    ['src/core/**/*.ts', 'src/demos/**/*.ts', 'src/labs/**/model.ts', 'src/characters/**/*.ts'],
+    [
+      'src/core/**/*.ts',
+      'src/demos/**/*.ts',
+      'src/labs/**/model.ts',
+      'src/characters/**/*.ts',
+      'src/episodes/**/*.ts',
+    ],
     ['pixi.js', 'pixi.js/*', 'gsap', 'gsap/*', '**/render/**', '**/studio/**', '**/playback/**'],
     'Core logic stays pure: no renderer, GSAP, UI or clock, so exports cannot depend on real time.',
   ),

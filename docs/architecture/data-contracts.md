@@ -8,23 +8,29 @@ The source of truth is `src/core/schema.ts`. This page explains intent.
 - Unknown fields are rejected, so typos fail loudly.
 - `+y` points down, matching screen coordinates.
 
-## Implemented (`schemaVersion: 1`)
+## Implemented (`schemaVersion: 2`)
 
 ```text
 Project  { schemaVersion, id, name, kind: technical-demo | production, scenes[] }
-Scene    { id, duration, fps, background, safeArea, nodes[], tracks[], shots[] }
+Scene    { id, duration, fps, exportFps, exposure, background, safeArea, nodes[], tracks[], shots[] }
+Exposure { character, camera, background, secondary }                            hold frames
 Node     { id, parent?, layer, shape, transform }
 Shape    group | rect | ellipse | polygon
 Transform{ x, y, rotation, scaleX, scaleY, pivotX, pivotY, opacity }
-Track    { target, property: x|y|rotation|scaleX|scaleY|opacity, keyframes[] }   scene time
+Track    { target, property: x|y|rotation|scaleX|scaleY|opacity,
+           group: character|background|secondary, hold?, keyframes[] }           scene time
 Shot     { id, start, duration, camera, tracks[] }
 Camera   { x, y, zoom, rotation }
-CameraTrack { property: x|y|zoom|rotation, keyframes[] }                         shot-local time
+CameraTrack { property: x|y|zoom|rotation, hold?, keyframes[] }                  shot-local time
 Keyframe { time, value, easing: linear|easeIn|easeOut|easeInOut|step }
 ```
 
 Shapes are centered on their local origin. A keyframe's easing applies to the segment that starts at
 that keyframe. Before the first and after the last keyframe, a track holds its end value.
+
+`fps` and `exportFps` accept 12, 24, 25, 30 or 60. Holds are whole numbers of at least 1. Version 1
+projects upgrade automatically in `parseProject`, exporting at their project rate. Timing rules are in
+[timing architecture](timing.md).
 
 ### Validation rules
 

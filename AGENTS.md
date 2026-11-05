@@ -11,7 +11,7 @@ named `animation`. The owner communicates in Thai; code, identifiers and docs ar
 
 ## Authorization limits
 
-- **Authorized:** Phase 0 and Phase 1 only.
+- **Authorized:** Phase 0, Phase 1, and the timing engine and Timing Lab from Phase 2.
 - **Not authorized:** stories, scripts, named characters, world lore, advanced rigging, 3D, or later
   phases, until the owner approves them.
 - **Ask first:** pushing commits, opening pull requests, changing repository visibility or name, and
@@ -30,7 +30,10 @@ project data -> Zod schema -> evaluateScene(scene, t) -> FrameState -> Renderer 
 
 - `src/core` and `src/demos` import no renderer, GSAP, DOM or UI code.
 - Only `src/render/pixi` imports `pixi.js`. Only `src/playback` imports `gsap`.
-- `evaluateScene` stays pure: no clock, randomness or retained state.
+- `evaluateFrame` and `evaluateScene` stay pure: no clock, randomness or retained state.
+- Display refresh, playhead, exposure and export sampling stay separate. See
+  [timing architecture](docs/architecture/timing.md).
+- Exports are sampled by index. Never derive them from real-time accumulation.
 - Scene content is data. Technical demos stay in `src/demos` and use `kind: 'technical-demo'`.
 
 ## Working rules

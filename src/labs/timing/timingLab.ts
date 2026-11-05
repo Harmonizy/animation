@@ -116,6 +116,7 @@ export async function createTimingLab(root: HTMLElement, options: TimingLabOptio
     el('span', { id: 'project-label' }, 'Technical demo: neutral shapes'),
     el('a', { id: 'view-link', href: '?' }, 'Studio'),
   );
+  root.classList.add('lab-view');
   root.replaceChildren(header, stage, panel, transport.element);
 
   const renderer = options.createRenderer();

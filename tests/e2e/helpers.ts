@@ -24,7 +24,10 @@ export function canvasShot(page: Page): Promise<Buffer> {
 /** Seeks through the real slider, then waits until that exact time has been drawn. */
 export async function seekTo(page: Page, time: number): Promise<void> {
   const fps = Number(await page.locator('#preview').getAttribute('data-fps'));
-  await page.locator('#seek').fill(String(Math.round(time * fps)));
+  const slider = page.locator('#seek');
+  await slider.fill(String(Math.round(time * fps)));
+  // Keeps the focus ring out of screenshots.
+  await slider.blur();
   await expect.poll(() => currentTime(page)).toBeCloseTo(time, 2);
 }
 

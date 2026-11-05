@@ -127,24 +127,78 @@ test.describe('timeline', () => {
         const preview = document.querySelector<HTMLElement>('#preview');
         const play = document.querySelector<HTMLButtonElement>('#play');
         if (!preview || !play) throw new Error('Studio is missing');
+        // Reads the playhead and the wall clock together, the moment the playhead changes.
+        const nextSample = () =>
+          new Promise<{ wall: number; playhead: number }>((resolve) => {
+            const observer = new MutationObserver(() => {
+              observer.disconnect();
+              resolve({ wall: performance.now(), playhead: Number(preview.dataset['playhead']) });
+            });
+            observer.observe(preview, { attributes: true, attributeFilter: ['data-playhead'] });
+          });
         const renders = () => Number(preview.dataset['renders']);
         const startRenders = renders();
         play.click();
-        const start = performance.now();
+        const first = await nextSample();
         await new Promise((resolve) => setTimeout(resolve, 1500));
-        const elapsed = (performance.now() - start) / 1000;
-        const playhead = Number(preview.dataset['playhead']);
+        const last = await nextSample();
         const frame = Number(preview.dataset['frame']);
         const drawn = renders() - startRenders;
         play.click();
-        return { elapsed, playhead, frame, drawn };
+        return {
+          elapsed: (last.wall - first.wall) / 1000,
+          moved: last.playhead - first.playhead,
+          frame,
+          drawn,
+        };
       });
 
-      expect(Math.abs(result.playhead - result.elapsed)).toBeLessThan(0.1);
+      expect(Math.abs(result.moved - result.elapsed)).toBeLessThan(0.05);
       // One draw for each project frame at most, however often the display updates.
       expect(result.drawn).toBeLessThanOrEqual(result.frame + 2);
     });
   }
+
+  test('playing after a long idle starts where it was, with no jump', async ({ page }) => {
+    await openStudio(page, '?frame=30');
+    // Long enough for GSAP's ticker to go to sleep.
+    await page.waitForTimeout(6000);
+
+    const firstMove = await page.evaluate(async () => {
+      const preview = document.querySelector<HTMLElement>('#preview');
+      const play = document.querySelector<HTMLButtonElement>('#play');
+      if (!preview || !play) throw new Error('Studio is missing');
+      play.click();
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      const playhead = Number(preview.dataset['playhead']);
+      play.click();
+      return playhead;
+    });
+    expect(firstMove).toBeGreaterThanOrEqual(1);
+    expect(firstMove).toBeLessThan(1.5);
+  });
+
+  test('resuming after a long pause continues from the same place', async ({ page }) => {
+    await openStudio(page);
+    await page.locator('#play').click();
+    await expect.poll(() => currentTime(page)).toBeGreaterThan(0.3);
+    await page.locator('#play').click();
+    const pausedAt = await currentTime(page);
+    await page.waitForTimeout(6000);
+    expect(await currentTime(page)).toBe(pausedAt);
+
+    const resumed = await page.evaluate(async () => {
+      const preview = document.querySelector<HTMLElement>('#preview');
+      const play = document.querySelector<HTMLButtonElement>('#play');
+      if (!preview || !play) throw new Error('Studio is missing');
+      play.click();
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      const playhead = Number(preview.dataset['playhead']);
+      play.click();
+      return playhead;
+    });
+    expect(resumed).toBeLessThan(pausedAt + 0.6);
+  });
 
   test('project frame rate changes the frame count, not the duration', async ({ page }) => {
     await openStudio(page, '?t=2');
@@ -329,6 +383,16 @@ test.describe('timing lab', () => {
         const box = await page.locator('#preview canvas').boundingBox();
         expect(box?.width).toBeGreaterThan(200);
         expect(box?.height).toBeGreaterThan(80);
+
+        // Every column must be readable without sideways scrolling.
+        const hidden = await page
+          .locator('.table-scroll')
+          .evaluate((element) => element.scrollWidth - element.clientWidth);
+        expect(hidden).toBeLessThanOrEqual(0);
+
+        const playBox = await page.locator('#play').boundingBox();
+        const speedBox = await page.locator('#speed').boundingBox();
+        expect(speedBox?.y).toBeCloseTo(playBox?.y ?? 0, -1);
 
         const table = page.locator('#lane-table');
         await table.scrollIntoViewIfNeeded();

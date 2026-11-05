@@ -289,7 +289,7 @@ h3 {
 
 .exposure-row {
   display: grid;
-  grid-template-columns: 72px minmax(0, 1fr) auto;
+  grid-template-columns: 84px minmax(0, 1fr) auto;
   align-items: center;
   gap: 6px;
   margin-bottom: 6px;
@@ -388,5 +388,27 @@ h3 {
   #readout {
     justify-content: flex-start;
     font-size: 12px;
+  }
+}
+
+/* The lab's table needs a wider panel than the Studio's controls. */
+@media (min-width: 801px) and (orientation: landscape) {
+  #app.lab-view {
+    grid-template-columns: minmax(0, 1fr) 400px;
+  }
+}
+
+/* Keeps the whole transport on one row on a phone, leaving more room for the preview. */
+@media (max-width: 480px) {
+  #transport-buttons {
+    gap: 4px;
+  }
+
+  #transport-buttons button {
+    padding: 0 8px;
+  }
+
+  #play {
+    width: 60px;
   }
 }

@@ -11,12 +11,13 @@ named `animation`. The owner communicates in Thai; code, identifiers and docs ar
 
 ## Authorization limits
 
-- **Authorized:** Phase 0, Phase 1, and the timing engine and Timing Lab from Phase 2.
+- **Authorized:** Phase 0, Phase 1, the timing engine and Timing Lab, and the Cinematic Minimalist
+  Silhouette foundation and its neutral labs.
 - **Not authorized:** stories, scripts, named characters, world lore, advanced rigging, 3D, or later
   phases, until the owner approves them.
 - **Ask first:** pushing commits, opening pull requests, changing repository visibility or name, and
   publishing to GitHub Pages. The repository is public, so a push is a publication.
-- **Proposals are not approvals:** `docs/proposals/` describes options that have not been approved.
+- **Proposals are not approvals:** check the status at the top of each file in `docs/proposals/`.
 
 ## Architecture rules
 

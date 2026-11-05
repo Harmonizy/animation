@@ -113,6 +113,7 @@ byte within one run.
 | T2  | Lab crashed on load: setting loop before its state existed                                                                | Fixed, covered by browser tests                                                                               |
 | T3  | Renderer kept nodes that left the frame, so old lanes would stay after a tab change                                       | Fixed before release, tested                                                                                  |
 | T4  | ESLint boundaries silently did not apply to `studio`, `labs` and `main`: later entries replaced earlier ones              | Fixed, confirmed by feeding forbidden imports to ESLint                                                       |
+| T8  | First CI run, on Linux: wider system fonts wrapped the speed control on phones, which Windows never showed                | Fixed with a proportional grid. Tested with forced monospace, serif and sans-serif fonts                      |
 | T5  | A playback speed test failed once at a simulated 33 ms display. Cause: it read a stale value under load, not engine drift | Test fixed. It then passed 16 of 16 repeated runs. A separate test ruled out GSAP ticker sleep causing a jump |
 
 No console errors, failed requests or asset errors were found. The Lab loads no external assets.

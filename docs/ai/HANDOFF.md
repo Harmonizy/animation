@@ -6,9 +6,9 @@ Written so that the next person or AI assistant needs no chat history. Rules are
 ## Current state
 
 - Repository: `Harmonizy/animation` (**public**). Local folder: `C:\Users\gotji\Music\animation`.
-- `main` holds only the initial commit.
-- `phase-1/foundation` holds Phase 1. `phase-2/timing-engine` builds on it, and
-  `phase-3/silhouette-labs` builds on that. **None are pushed.**
+- `main` holds Phase 1 only. `integrate/timing-and-style` adds the timing engine and style labs, through
+  an open PR into `main`.
+- The older `phase-*` branches were merged as a stack and are no longer used for new work.
 - Phase 1, the timing engine and the style labs are implemented and verified locally. See [status](PROJECT_STATUS.md).
 
 ## Run and verify
@@ -66,17 +66,20 @@ Start with `src/main.ts`, then:
 - The desktop browser pane can throttle animation frames, so measure timing with Playwright.
 - Parallax is baked into world matrices, so `worldMatrix` includes the plane offset for that camera.
 - Foreground shapes use the `foreground` token. `subject` is only for the subject.
+- Fonts differ between machines, so do not rely on text widths for layout. CI on Linux wraps differently
+  from Windows.
+- When merging stacked PRs, check where each one lands. Their bases do not move to `main` by themselves.
 - The demo must stay inside the frame. `tests/unit/framing.test.ts` fails if edits push a shape out.
 
 ## Waiting on the owner
 
-1. Permission to push the branches and open pull requests. CI cannot run until then.
+1. Review and merge of the PR from `integrate/timing-and-style` into `main`.
 2. Review of the labs, and any real palette or proportions to replace the placeholders.
 3. Reading the GSAP license if the studio may be distributed as a tool.
 
 ## Suggested next steps
 
-1. Push and confirm CI on Linux, since it has only run locally on Windows.
+1. Merge the open PR into `main` once CI passes.
 2. Have a person watch the labs in motion, especially the walk.
 3. Test on a real high-refresh display, a phone and a GPU, then record the results in visual QA.
 4. Add per-aspect camera framing, then fix the preview in very short windows.

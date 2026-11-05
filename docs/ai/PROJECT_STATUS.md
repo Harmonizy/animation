@@ -1,7 +1,9 @@
 # Project status
 
-Last updated: 2026-11-05. Branch: `phase-3/silhouette-labs`, on top of `phase-2/timing-engine` and
-`phase-1/foundation`. **None of these branches has been pushed.**
+Last updated: 2026-11-05. Branch: `integrate/timing-and-style`, with a PR into `main`.
+
+PRs #1, #2 and #3 are merged, but they were stacked, so `main` received only Phase 1. The timing and style
+work reaches `main` through this branch. Until it merges, `main` does not have them.
 
 ## Overall plan
 
@@ -47,7 +49,7 @@ Run after a clean `npm ci`, on Windows 11, Node 24.14.1, Chromium 156 with softw
 | `npm run lint`         | Pass                                             |
 | `npm test`             | Pass, 262 tests                                  |
 | `npm run build`        | Pass                                             |
-| `npm run test:e2e`     | Pass, 80 tests                                   |
+| `npm run test:e2e`     | Pass, 83 tests                                   |
 | `npm run capture`      | Pass, 38 setups                                  |
 | `npm audit --omit=dev` | 0 vulnerabilities                                |
 | Dev server             | Started, and used in the desktop browser pane    |
@@ -55,7 +57,8 @@ Run after a clean `npm ci`, on Windows 11, Node 24.14.1, Chromium 156 with softw
 
 ## Known limitations
 
-- **GitHub Actions has never run,** because nothing has been pushed. The workflow is untested.
+- GitHub Actions runs on Linux for each PR. Check the PRs for current results. Its first run found a phone
+  layout problem caused by Linux fonts, which is fixed on this branch with a font-independent test.
 - Tested in Chromium only, on one Windows machine, using software GL. Real GPUs, phones, Safari and
   Firefox are untested.
 - **High refresh rates are simulated, not tested on real displays.** Real-GPU frame rate is unmeasured.

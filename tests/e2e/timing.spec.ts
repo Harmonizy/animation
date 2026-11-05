@@ -213,7 +213,7 @@ test.describe('timeline', () => {
     await expect(page.locator('#timecode')).toHaveText('00:00:02:00');
   });
 
-  test('12 fps shows the same picture between its frames', async ({ page }) => {
+  test('stepping at 12 fps moves to a new picture', async ({ page }) => {
     await openStudio(page);
     await page.locator('#project-fps').selectOption('12');
     const first = await canvasShot(page);

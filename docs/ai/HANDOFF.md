@@ -86,7 +86,7 @@ Start with `src/main.ts`, then:
 
 ## Waiting on the owner
 
-1. A Google Cloud Text-to-Speech API key as `GOOGLE_TTS_API_KEY`, for the episode's narration.
+1. A Gemini API key as `GEMINI_API_KEY` (or a Google Cloud TTS key), for the episode's narration.
 2. Watching the episode at speed with sound, and review of Harmonie's sheet and the labs.
 3. Reading the GSAP license if the studio may be distributed as a tool.
 

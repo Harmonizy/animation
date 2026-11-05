@@ -81,7 +81,7 @@ clean `npm ci`. Earlier phases were also verified on Windows 11, Node 24.14.1.
 - Style lab proportions, palettes and the walk are placeholders, with no per-aspect camera framing and no
   external `.svg` import. See [visual style](../creative/visual-style.md).
 - Technical demos only. They are not artwork, and make no claim of visual fidelity.
-- The episode has no narration until a Google Cloud Text-to-Speech key is provided, and nobody has
+- The episode has no narration until a Gemini (or Google Cloud TTS) key is provided, and nobody has
   watched it at speed with sound. See [its status](../../projects/harmonie/hollow-bell-crypt/reports/production-status.md).
 - Harmonie: only the side view is animated, the walk is in place, cloth moves as rigid pieces, and no
   person has watched the motion. See [her open issues](../creative/harmonie.md#visual-qa-version-1).

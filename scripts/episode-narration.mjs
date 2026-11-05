@@ -1,102 +1,162 @@
-/* global console, process, Buffer */
-// Generates the Thai narration with Google Cloud Text-to-Speech, one WAV per shot.
+/* global console, process, Buffer, setTimeout */
+// Generates the Thai narration, one WAV per shot, in artifacts/episode/narration/.
 //
-//   GOOGLE_TTS_API_KEY=... npm run narration:episode        writes artifacts/episode/narration/S01.wav ...
-//   npm run narration:episode -- --dry-run                   prints the requests, sends nothing
+//   npm run narration:episode               uses Gemini when GEMINI_API_KEY is set,
+//                                           otherwise Google Cloud TTS with GOOGLE_TTS_API_KEY
+//   npm run narration:episode -- --dry-run  prints the requests, sends nothing
+//   npm run narration:episode -- --force    remakes lines that already exist
 //
-// Optional: GOOGLE_TTS_VOICE (default th-TH-Neural2-C), GOOGLE_TTS_RATE (default 0.92).
+// Gemini options: GEMINI_TTS_MODEL (default gemini-2.5-flash-preview-tts),
+//                 GEMINI_TTS_VOICE (default Charon, a calm and even voice).
+// Cloud options:  GOOGLE_TTS_VOICE (default th-TH-Neural2-C), GOOGLE_TTS_RATE (default 0.92).
+//
+// Every line is trimmed of leading and trailing silence and converted to 48 kHz. A line longer than
+// its window is sped up by at most 12%; if it still does not fit, the script says so and fails.
 // Then run npm run audio:episode and npm run render:episode to mix the voice into the video.
 //
-// The key is sent in a request header, never in the URL, and is never written anywhere.
+// Keys are sent in a request header, never in the URL, and are never written anywhere.
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { finishLine, MAX_SPEED_UP } from './narration-audio.mjs';
 
 const SCRIPT = 'projects/harmonie/hollow-bell-crypt/narration.th.json';
 const OUT = 'artifacts/episode/narration';
-const ENDPOINT = 'https://texttospeech.googleapis.com/v1/text:synthesize';
 
 const dryRun = process.argv.includes('--dry-run');
-const key = process.env.GOOGLE_TTS_API_KEY;
-const voice = process.env.GOOGLE_TTS_VOICE ?? 'th-TH-Neural2-C';
-const rate = Number(process.env.GOOGLE_TTS_RATE ?? '0.92');
+const force = process.argv.includes('--force');
+const geminiKey = process.env.GEMINI_API_KEY;
+const cloudKey = process.env.GOOGLE_TTS_API_KEY;
+const provider = geminiKey || (dryRun && !cloudKey) ? 'gemini' : 'cloud';
 
-if (!dryRun && !key) {
+if (!dryRun && !geminiKey && !cloudKey) {
   console.error(
-    'GOOGLE_TTS_API_KEY is not set. Add a Google Cloud API key with Text-to-Speech enabled to the environment, then run this again.',
+    'No voice service key. Set GEMINI_API_KEY (Google AI Studio) or GOOGLE_TTS_API_KEY (Google Cloud) in the environment, then run this again.',
   );
   process.exit(1);
 }
 
-/** The request for one line. Ellipses become short pauses, as the script directs. */
-export function requestFor(text) {
+const script = JSON.parse(readFileSync(SCRIPT, 'utf8'));
+
+/** Gemini speaks the line in the style the prompt asks for, without reading the instruction. */
+function geminiRequest(text) {
+  const style =
+    'Read the following Thai narration as a calm, serious, mysterious storyteller: natural and ' +
+    'unhurried, never shouting, not an announcer. Pause briefly at each "...". Speak only the Thai text.';
+  return {
+    url: `https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_TTS_MODEL ?? 'gemini-2.5-flash-preview-tts'}:generateContent`,
+    headers: [`x-goog-api-key: ${geminiKey ?? '<GEMINI_API_KEY>'}`],
+    body: {
+      contents: [{ parts: [{ text: `${style}\n\n${text}` }] }],
+      generationConfig: {
+        responseModalities: ['AUDIO'],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: { voiceName: process.env.GEMINI_TTS_VOICE ?? 'Charon' },
+          },
+        },
+      },
+    },
+  };
+}
+
+function cloudRequest(text) {
   const ssml = `<speak>${text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/\.\.\.\s*/g, '<break time="450ms"/>')}</speak>`;
   return {
-    input: { ssml },
-    voice: { languageCode: 'th-TH', name: voice },
-    audioConfig: { audioEncoding: 'LINEAR16', sampleRateHertz: 48000, speakingRate: rate },
+    url: 'https://texttospeech.googleapis.com/v1/text:synthesize',
+    headers: [`X-Goog-Api-Key: ${cloudKey ?? '<GOOGLE_TTS_API_KEY>'}`],
+    body: {
+      input: { ssml },
+      voice: { languageCode: 'th-TH', name: process.env.GOOGLE_TTS_VOICE ?? 'th-TH-Neural2-C' },
+      audioConfig: {
+        audioEncoding: 'LINEAR16',
+        sampleRateHertz: 48000,
+        speakingRate: Number(process.env.GOOGLE_TTS_RATE ?? '0.92'),
+      },
+    },
   };
 }
 
-function wavSeconds(buffer) {
-  // LINEAR16 responses are WAV files: read the byte rate and data size from the header.
-  const byteRate = buffer.readUInt32LE(28);
-  let offset = 12;
-  while (offset < buffer.length - 8) {
-    const id = buffer.toString('ascii', offset, offset + 4);
-    const size = buffer.readUInt32LE(offset + 4);
-    if (id === 'data') return size / byteRate;
-    offset += 8 + size;
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** Posts with curl, which follows the system proxy settings. Retries when rate limited. */
+async function post(request) {
+  for (let attempt = 1; ; attempt++) {
+    const result = spawnSync(
+      'curl',
+      [
+        '-sS',
+        '-w',
+        '\n%{http_code}',
+        '-X',
+        'POST',
+        request.url,
+        '-H',
+        'Content-Type: application/json',
+        ...request.headers.flatMap((header) => ['-H', header]),
+        '--data-binary',
+        '@-',
+      ],
+      { input: JSON.stringify(request.body), encoding: 'utf8', maxBuffer: 128 * 1024 * 1024 },
+    );
+    if (result.status !== 0) throw new Error(result.stderr || 'curl failed');
+    const cut = result.stdout.lastIndexOf('\n');
+    const status = Number(result.stdout.slice(cut + 1));
+    const body = result.stdout.slice(0, cut);
+    if (status === 200) return JSON.parse(body);
+    if ((status === 429 || status >= 500) && attempt < 6) {
+      const wait = 20_000 * attempt;
+      console.log(`  service busy (${status}), retrying in ${wait / 1000} s`);
+      await sleep(wait);
+      continue;
+    }
+    throw new Error(`HTTP ${status}: ${body.slice(0, 600)}`);
   }
-  return NaN;
 }
 
-const script = JSON.parse(readFileSync(SCRIPT, 'utf8'));
 mkdirSync(OUT, { recursive: true });
-let tooLong = 0;
+console.log(`Voice: ${provider === 'gemini' ? 'Gemini TTS' : 'Google Cloud TTS'}`);
+let failed = 0;
 for (const line of script.lines) {
-  const body = JSON.stringify(requestFor(line.text));
+  const request = provider === 'gemini' ? geminiRequest(line.text) : cloudRequest(line.text);
   if (dryRun) {
-    console.log(`${line.shot}: ${body}`);
+    console.log(`${line.shot}: POST ${request.url}\n  ${JSON.stringify(request.body)}`);
     continue;
   }
-  const result = spawnSync(
-    'curl',
-    [
-      '-sS',
-      '--fail-with-body',
-      '-X',
-      'POST',
-      ENDPOINT,
-      '-H',
-      'Content-Type: application/json',
-      '-H',
-      `X-Goog-Api-Key: ${key}`,
-      '--data-binary',
-      '@-',
-    ],
-    { input: body, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
-  );
-  if (result.status !== 0) {
-    console.error(`${line.shot}: request failed\n${result.stdout || result.stderr}`);
-    process.exit(1);
-  }
-  const audio = Buffer.from(JSON.parse(result.stdout).audioContent, 'base64');
   const file = join(OUT, `${line.shot}.wav`);
-  writeFileSync(file, audio);
-  const seconds = wavSeconds(audio);
-  const fits = seconds <= line.maxDuration;
-  if (!fits) tooLong++;
+  if (existsSync(file) && !force) {
+    console.log(`${file}: kept (use --force to remake)`);
+    continue;
+  }
+  const response = await post(request);
+  const raw = join(OUT, `${line.shot}.raw`);
+  let length;
+  if (provider === 'gemini') {
+    const part = response.candidates?.[0]?.content?.parts?.find((p) => p.inlineData);
+    if (!part) throw new Error(`${line.shot}: no audio in the response`);
+    writeFileSync(raw, Buffer.from(part.inlineData.data, 'base64'));
+    // Gemini returns signed 16-bit mono PCM; its MIME type names the rate, usually 24 kHz.
+    const rate = Number(/rate=(\d+)/.exec(part.inlineData.mimeType ?? '')?.[1] ?? 24000);
+    length = finishLine(raw, rate, file, line.maxDuration);
+  } else {
+    writeFileSync(raw, Buffer.from(response.audioContent, 'base64'));
+    length = finishLine(raw, 'wav', file, line.maxDuration);
+  }
+  rmSync(raw);
+  const fits = length <= line.maxDuration;
+  if (!fits) failed++;
   console.log(
-    `${file}: ${seconds.toFixed(2)} s of ${line.maxDuration} s${fits ? '' : '  TOO LONG'}`,
+    `${file}: ${length.toFixed(2)} s of ${line.maxDuration} s${fits ? '' : '  TOO LONG'}`,
   );
+  // Stay under the preview models' per-minute request limits.
+  if (provider === 'gemini') await sleep(7_000);
 }
-if (tooLong > 0) {
+if (failed > 0) {
   console.error(
-    `${tooLong} line(s) are longer than their window. Raise GOOGLE_TTS_RATE, then run again.`,
+    `${failed} line(s) do not fit their window even at ${MAX_SPEED_UP}x. Try another voice, then run with --force.`,
   );
   process.exit(2);
 }

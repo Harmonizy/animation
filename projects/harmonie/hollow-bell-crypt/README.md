@@ -42,14 +42,16 @@ committed. Watch frame by frame in the studio at `?view=hollow-bell-crypt`.
 
 ## Narration
 
-The narration is generated with Google Cloud Text-to-Speech (`th-TH-Neural2-C` by default). Add a
-Google Cloud API key with the Text-to-Speech API enabled as the environment variable
-`GOOGLE_TTS_API_KEY`, then run the three commands above in order. The script reports each line's
-length against its window and fails if one is too long; `GOOGLE_TTS_RATE` (default 0.92) and
-`GOOGLE_TTS_VOICE` adjust it. Listen to the result before publishing: a synthetic voice may need a
-different voice, rate or pauses to sound calm rather than flat.
+The voice comes from **Gemini TTS** (`gemini-2.5-flash-preview-tts`, voice `Charon`) when
+`GEMINI_API_KEY` is set, a key from Google AI Studio. Otherwise it uses Google Cloud Text-to-Speech
+with `GOOGLE_TTS_API_KEY`. Run the three commands above in order.
 
-Until that is done, the video has music and sound effects but **no voice**.
+Each line is trimmed of silence, converted to 48 kHz and, if needed, sped up by at most 12% to fit
+its window; a line that still does not fit fails the run. Existing lines are kept, so a rerun only
+asks for what is missing (`--force` remakes them). `GEMINI_TTS_VOICE` and `GEMINI_TTS_MODEL` change
+the voice and model. Listen before publishing: a synthetic voice may need another voice to sound calm.
+
+Until a key is set, the video has music and sound effects but **no voice**.
 
 ## Sound
 

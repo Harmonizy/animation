@@ -166,6 +166,29 @@ describe('evaluateScene', () => {
     expect(order({ layers: { top: 0 } })).toEqual(['top', 'bottom', 'child', 'tie']);
   });
 
+  it('orders by depth within a root, independent of the hierarchy', () => {
+    const scene = sceneOf({
+      nodes: [
+        { id: 'rigA', shape: { kind: 'group' } },
+        // A child placed behind everything else in its root, as a cloak behind a rig.
+        { id: 'arm', parent: 'rigA', depth: 5, shape: { kind: 'group' } },
+        { id: 'cloak', parent: 'arm', depth: -1, shape: { kind: 'group' } },
+        { id: 'torso', parent: 'rigA', shape: { kind: 'group' } },
+        { id: 'rigB', shape: { kind: 'group' } },
+        { id: 'deepB', parent: 'rigB', depth: -50, shape: { kind: 'group' } },
+      ],
+    });
+    // Depth never moves a node out of its root: rigB stays above all of rigA.
+    expect(evaluateScene(scene, 0).nodes.map((n) => n.id)).toEqual([
+      'cloak',
+      'rigA',
+      'torso',
+      'arm',
+      'deepB',
+      'rigB',
+    ]);
+  });
+
   describe('camera', () => {
     const scene = sceneOf({
       shots: [

@@ -330,7 +330,20 @@ export function evaluateFrame(
       if (layerOf(child) >= 0) visit(child, worldMatrix, worldOpacity, subject);
     }
   };
-  for (const root of childrenOf.get(undefined) ?? []) visit(root, rootMatrix(root), 1, false);
+  const roots = childrenOf.get(undefined) ?? [];
+  const rootOf = new Map<string, number>();
+  for (const [index, root] of roots.entries()) {
+    const start = nodes.length;
+    visit(root, rootMatrix(root), 1, false);
+    for (const drawn of nodes.slice(start)) rootOf.set(drawn.id, index);
+  }
+  // Depth orders nodes within each root. The sort is stable, so equal depths keep tree order.
+  const depthOf = new Map(scene.nodes.map((node) => [node.id, node.depth]));
+  nodes.sort(
+    (a, b) =>
+      (rootOf.get(a.id) ?? 0) - (rootOf.get(b.id) ?? 0) ||
+      (depthOf.get(a.id) ?? 0) - (depthOf.get(b.id) ?? 0),
+  );
 
   return {
     frame,

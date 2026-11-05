@@ -18,7 +18,7 @@ Plane    { id, parallax }                                                       
 Poses    { poseName: { nodeId: { x?, y?, rotation?, scaleX?, scaleY? } } }
 PoseTrack{ group, hold?, keyframes: [{ time, pose, easing }] }                   scene time
 Exposure { character, camera, background, secondary }                            hold frames
-Node     { id, parent?, layer, plane?, subject, shape, transform }
+Node     { id, parent?, layer, depth, plane?, subject, shape, transform }
 Shape    group | rect | ellipse | polygon | path
 Transform{ x, y, rotation, scaleX, scaleY, pivotX, pivotY, opacity }
 Track    { target, property: x|y|rotation|scaleX|scaleY|opacity,
@@ -57,6 +57,11 @@ projects upgrade automatically in `parseProject`; version 1 exports at its proje
 Siblings sort by `layer`, with ties in declaration order. Children draw above their parent. `layer`
 orders siblings only, so a child cannot move behind its parent's siblings. A negative `layer` draws
 the child behind its parent. Root nodes sort by plane first, then by layer.
+
+`depth` (default 0) then reorders the drawn nodes **within each root**, independent of the hierarchy.
+Equal depths keep the order above, so a tree that sets no depth draws exactly as before, and depth
+never moves a node in front of or behind another root. Character rigs use it, because a cloak that
+hangs from the torso must still draw behind the legs. See [Harmonie](../creative/harmonie.md#rig).
 
 ## Planned contracts (not implemented)
 

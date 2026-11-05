@@ -133,6 +133,12 @@ const NodeSchema = z.strictObject({
    * unless their layer is negative, which places them behind it.
    */
   layer: z.number().int().default(0),
+  /**
+   * Draw order within the node's root, independent of the hierarchy, as in skeletal rigs where
+   * bones and draw order are separate. Higher values draw on top. Nodes of equal depth keep the
+   * order the hierarchy and layers give, so a tree that sets no depth draws exactly as before.
+   */
+  depth: z.number().default(0),
   /** Depth plane. Only root nodes have one, and it applies to their descendants. */
   plane: Id.optional(),
   /** Marks a node and its descendants as the subject shown in silhouette review. */

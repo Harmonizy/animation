@@ -219,3 +219,11 @@ about smoothness. **Frame rate on a real GPU was not measured.**
 - Add a camera rotation control. The data supports rotation, but the UI does not expose it.
 - Give the phone layout a collapsible panel, which would allow a larger preview.
 - Show a keyframe or shot-boundary marker on the seek bar.
+
+## Harmonie (CHR-001), 2026-11-05
+
+Reviewed in Chromium (software GL, Linux) from the generated SVG sheet and from the running preview,
+in 16:9, 1:1, 9:16 and silhouette display. Twelve defects were found and fixed, and seven remain
+open. Both lists are in [Harmonie: visual QA](../creative/harmonie.md#visual-qa-version-1).
+Screenshots: `npm run capture`, then `artifacts/screenshots/harmonie/` and
+`artifacts/screenshots/harmonie-preview-*/contact-sheet.png`.

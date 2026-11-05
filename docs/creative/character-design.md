@@ -1,7 +1,7 @@
 # Character design
 
-**Status: guidance only (Planned).** There are no characters and no character schema in the code. Do
-not create story characters until a later phase is authorized. Sources: [references](../REFERENCES.md).
+**Status: guidance.** One character is approved: [Harmonie (CHR-001)](harmonie.md), design and rig
+only. Do not create other characters, or story for Harmonie, until the owner authorizes it. Sources: [references](../REFERENCES.md).
 
 ## Psychology template
 

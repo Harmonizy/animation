@@ -7,9 +7,10 @@ Written so that the next person or AI assistant needs no chat history. Rules are
 
 - Repository: `Harmonizy/animation` (**public**). Local folder: `C:\Users\gotji\Music\animation`.
 - `main` holds Phase 1, the timing engine and the style labs. PR #4 merged them, with CI passing.
-  Start new work from `main`.
+- `integrate/timing-and-style-rjjke1` adds Harmonie (CHR-001), the first approved character. It is
+  pushed but has no PR yet.
 - The older `phase-*` branches were merged as a stack and are no longer used for new work.
-- Phase 1, the timing engine and the style labs are implemented and verified locally. See [status](PROJECT_STATUS.md).
+- Phase 1, the timing engine, the style labs and Harmonie are implemented and verified. See [status](PROJECT_STATUS.md).
 
 ## Run and verify
 
@@ -49,6 +50,8 @@ Start with `src/main.ts`, then:
 - `src/style/cinematicMinimalist.ts`: palette tokens.
 - `src/labs/silhouette/`: the mannequin and style labs. Read [visual style](../creative/visual-style.md).
 - `src/demos/geometricDemo.ts`: the demo as data.
+- `src/characters/harmonie/`: Harmonie's palette, rig, geometry, poses, preview and SVG sheet. Read
+  [Harmonie](../creative/harmonie.md) first. Rebuild the SVG files with `npm run build:harmonie`.
 
 ## Things that are easy to get wrong
 
@@ -60,7 +63,11 @@ Start with `src/main.ts`, then:
   file. Each area must list everything it bans.
 - Camera keyframes use shot-local time, and camera poses count from the shot start. Node keyframes and
   poses use the scene.
-- `layer` only orders siblings, and children draw above their parent.
+- `layer` only orders siblings, and children draw above their parent. `depth` reorders within a root,
+  for rigs whose draw order differs from their hierarchy.
+- Harmonie's left and right are her own. The side rig is her left profile and must not be mirrored.
+- After changing Harmonie's geometry or poses, run `npm run build:harmonie`, look at the sheet, and
+  commit the SVG files. A unit test fails if they are stale.
 - A seek made during playback does not hold still. `seekTo` in `tests/e2e/helpers.ts` is for paused use.
 - For timing tests, read the playhead when it changes, or you may read a stale value under load.
 - The desktop browser pane can throttle animation frames, so measure timing with Playwright.
@@ -73,11 +80,12 @@ Start with `src/main.ts`, then:
 
 ## Waiting on the owner
 
-1. Review of the labs, and any real palette or proportions to replace the placeholders.
+1. Review of Harmonie's sheet and motion preview, and of the labs.
 2. Reading the GSAP license if the studio may be distributed as a tool.
 
 ## Suggested next steps
 
-1. Have a person watch the labs in motion, especially the walk.
-2. Test on a real high-refresh display, a phone and a GPU, then record the results in visual QA.
-3. Add per-aspect camera framing, then fix the preview in very short windows.
+1. Have a person watch Harmonie's preview and the labs in motion, especially the walks.
+2. Harmonie: a right profile, a stronger three-quarter turn, and a segmented cloak that can bend.
+3. Test on a real high-refresh display, a phone and a GPU, then record the results in visual QA.
+4. Add per-aspect camera framing, then fix the preview in very short windows.

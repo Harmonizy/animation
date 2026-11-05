@@ -1,9 +1,10 @@
 # Project status
 
-Last updated: 2026-11-05. Branch: `main`.
+Last updated: 2026-11-05. Branch: `integrate/timing-and-style-rjjke1`, not yet merged into `main`.
 
-`main` holds Phase 1, the timing engine and the style labs. PRs #1, #2 and #3 were stacked, so `main`
-first received only Phase 1. PR #4 brought the rest into `main`, with CI passing on Linux.
+`main` holds Phase 1, the timing engine and the style labs (PR #4). This branch adds the first
+approved character, **Harmonie (CHR-001)**: character sheet, rig, poses and a motion preview. See
+[Harmonie](../creative/harmonie.md).
 
 ## Overall plan
 
@@ -16,6 +17,7 @@ first received only Phase 1. PR #4 brought the rest into `main`, with CI passing
 | Visual QA review of the Lab            | Done, with one open issue                                  |
 | Cinematic Minimalist Silhouette        | Approved. Foundation and three labs done, verified locally |
 | Visual QA review of the style labs     | Done, with open issues                                     |
+| Harmonie (CHR-001) design and rig      | Done, verified in Chromium. Not yet watched by a person    |
 | Other Phase 2 work and later phases    | Not authorized                                             |
 
 ## Implemented
@@ -36,6 +38,9 @@ first received only Phase 1. PR #4 brought the rest into `main`, with CI passing
 - Test mannequin with reusable parts, and three neutral labs. See
   [visual style](../creative/visual-style.md).
 - Vitest, Playwright, screenshot capture, ESLint with import boundaries, Prettier and a CI workflow.
+- Node `depth`: draw order within a root, separate from the hierarchy.
+- Harmonie (CHR-001): four-view turnaround, 21-node rig, leg IK, seven poses, a 2560x1800 SVG sheet,
+  a rig SVG, and a 24 fps preview on twos (`?view=harmonie`). See [Harmonie](../creative/harmonie.md).
 
 ## Verification
 
@@ -72,6 +77,8 @@ Run after a clean `npm ci`, on Windows 11, Node 24.14.1, Chromium 156 with softw
 - Style lab proportions, palettes and the walk are placeholders, with no per-aspect camera framing and no
   external `.svg` import. See [visual style](../creative/visual-style.md).
 - Technical demos only. They are not artwork, and make no claim of visual fidelity.
+- Harmonie: only the side view is animated, the walk is in place, cloth moves as rigid pieces, and no
+  person has watched the motion. See [her open issues](../creative/harmonie.md#visual-qa-version-1).
 - `npm audit` (including dev tools) reports 10 moderate findings from `minimatch` through ESLint
   tooling. They do not reach the app bundle, and npm's suggested fix is a breaking downgrade.
 - TypeScript stays at 6.0.3 because `typescript-eslint` 8.72.1 requires `<6.1.0`.

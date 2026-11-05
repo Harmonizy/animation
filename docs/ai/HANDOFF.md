@@ -6,8 +6,8 @@ Written so that the next person or AI assistant needs no chat history. Rules are
 ## Current state
 
 - Repository: `Harmonizy/animation` (**public**). Local folder: `C:\Users\gotji\Music\animation`.
-- `main` holds Phase 1 only. `integrate/timing-and-style` adds the timing engine and style labs, through
-  an open PR into `main`.
+- `main` holds Phase 1, the timing engine and the style labs. PR #4 merged them, with CI passing.
+  Start new work from `main`.
 - The older `phase-*` branches were merged as a stack and are no longer used for new work.
 - Phase 1, the timing engine and the style labs are implemented and verified locally. See [status](PROJECT_STATUS.md).
 
@@ -73,13 +73,11 @@ Start with `src/main.ts`, then:
 
 ## Waiting on the owner
 
-1. Review and merge of the PR from `integrate/timing-and-style` into `main`.
-2. Review of the labs, and any real palette or proportions to replace the placeholders.
-3. Reading the GSAP license if the studio may be distributed as a tool.
+1. Review of the labs, and any real palette or proportions to replace the placeholders.
+2. Reading the GSAP license if the studio may be distributed as a tool.
 
 ## Suggested next steps
 
-1. Merge the open PR into `main` once CI passes.
-2. Have a person watch the labs in motion, especially the walk.
-3. Test on a real high-refresh display, a phone and a GPU, then record the results in visual QA.
-4. Add per-aspect camera framing, then fix the preview in very short windows.
+1. Have a person watch the labs in motion, especially the walk.
+2. Test on a real high-refresh display, a phone and a GPU, then record the results in visual QA.
+3. Add per-aspect camera framing, then fix the preview in very short windows.

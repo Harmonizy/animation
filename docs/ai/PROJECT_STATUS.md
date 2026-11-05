@@ -1,9 +1,9 @@
 # Project status
 
-Last updated: 2026-11-05. Branch: `integrate/timing-and-style`, with a PR into `main`.
+Last updated: 2026-11-05. Branch: `main`.
 
-PRs #1, #2 and #3 are merged, but they were stacked, so `main` received only Phase 1. The timing and style
-work reaches `main` through this branch. Until it merges, `main` does not have them.
+`main` holds Phase 1, the timing engine and the style labs. PRs #1, #2 and #3 were stacked, so `main`
+first received only Phase 1. PR #4 brought the rest into `main`, with CI passing on Linux.
 
 ## Overall plan
 
@@ -57,8 +57,8 @@ Run after a clean `npm ci`, on Windows 11, Node 24.14.1, Chromium 156 with softw
 
 ## Known limitations
 
-- GitHub Actions runs on Linux for each PR. Check the PRs for current results. Its first run found a phone
-  layout problem caused by Linux fonts, which is fixed on this branch with a font-independent test.
+- GitHub Actions runs on Linux for each PR and each push to `main`. Its first run found a phone layout
+  problem caused by Linux fonts. PR #4 fixed it with a font-independent test, and CI passed.
 - Tested in Chromium only, on one Windows machine, using software GL. Real GPUs, phones, Safari and
   Firefox are untested.
 - **High refresh rates are simulated, not tested on real displays.** Real-GPU frame rate is unmeasured.

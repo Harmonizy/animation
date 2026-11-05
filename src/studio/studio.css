@@ -198,18 +198,169 @@ input[type='range'] {
 #transport {
   grid-area: transport;
   display: grid;
-  grid-template-columns: 80px auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
+  gap: 8px 16px;
+  padding: 8px 16px;
   border-top: 1px solid var(--border);
   background: var(--surface);
 }
 
+#transport-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+#play {
+  width: 72px;
+}
+
+#seek {
+  grid-column: 1 / -1;
+}
+
 #readout {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 2px 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+#timecode {
+  color: var(--text);
+  font-weight: 600;
+}
+
+#view-link {
+  margin-left: auto;
+  color: var(--accent);
+}
+
+select,
+input[type='number'] {
+  min-width: 0;
+  min-height: 32px;
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-raised);
+  color: var(--text);
+  font: inherit;
+}
+
+:is(select, a):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+input[aria-invalid='true'] {
+  border-color: #ff8a75;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+h3 {
+  margin: 12px 0 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.field-row output,
+.exposure-row output {
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+.exposure-row {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.exposure-row label {
+  text-transform: capitalize;
+}
+
+.exposure-row input[type='number'] {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.exposure-row output {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+#timing-reset {
+  margin-top: 4px;
+}
+
+.segmented.tabs {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.segmented.tabs button {
+  padding: 0 4px;
+}
+
+#lab-note {
+  margin: 10px 0;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+#lane-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+#lane-table :is(th, td) {
+  padding: 5px 4px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 400;
+  text-align: right;
+  white-space: nowrap;
+}
+
+#lane-table thead th {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+#lane-table :is(th:first-child) {
+  text-align: left;
+}
+
+.lane-chip {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 50%;
 }
 
 /* Portrait and narrow screens: the preview stays first, controls scroll below it. */
@@ -230,17 +381,34 @@ input[type='range'] {
   }
 
   #transport {
-    grid-template-columns: 80px auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     border-bottom: 1px solid var(--border);
   }
 
-  #seek {
-    grid-column: 1 / -1;
-    grid-row: 2;
+  #readout {
+    justify-content: flex-start;
+    font-size: 12px;
+  }
+}
+
+/* The lab's table needs a wider panel than the Studio's controls. */
+@media (min-width: 801px) and (orientation: landscape) {
+  #app.lab-view {
+    grid-template-columns: minmax(0, 1fr) 400px;
+  }
+}
+
+/* Keeps the whole transport on one row on a phone, leaving more room for the preview. */
+@media (max-width: 480px) {
+  #transport-buttons {
+    gap: 4px;
   }
 
-  #readout {
-    justify-self: end;
-    font-size: 12px;
+  #transport-buttons button {
+    padding: 0 8px;
+  }
+
+  #play {
+    width: 60px;
   }
 }

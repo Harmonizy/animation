@@ -82,6 +82,7 @@ export class PixiRenderer implements Renderer {
       entry.graphics.zIndex = drawIndex;
     });
 
+    if (this.drawn.size > frame.nodes.length) this.removeNodesMissingFrom(frame);
     this.app.render();
   }
 
@@ -90,6 +91,15 @@ export class PixiRenderer implements Renderer {
     this.mounted = false;
     this.drawn.clear();
     this.app.destroy({ removeView: true }, { children: true });
+  }
+
+  private removeNodesMissingFrom(frame: FrameState): void {
+    const present = new Set(frame.nodes.map((node) => node.id));
+    for (const [id, entry] of this.drawn) {
+      if (present.has(id)) continue;
+      entry.graphics.destroy();
+      this.drawn.delete(id);
+    }
   }
 
   private applyMatrix(target: Container, m: Mat2D): void {

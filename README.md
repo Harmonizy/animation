@@ -3,7 +3,7 @@
 A foundation for Animation-as-Code: scenes are validated data, every frame is a pure function of
 time, and rendering sits behind an interface.
 
-**Status: Phase 1 foundation.** The only content is a neutral technical demo made of geometric
+**Status: Phase 1 foundation, plus the Phase 2 timing engine.** The only content is a neutral technical demo and a Timing Lab, made of geometric
 shapes. It is a systems test, not artwork. See [project status](docs/ai/PROJECT_STATUS.md).
 
 ## Setup
@@ -37,12 +37,15 @@ Then open the URL Vite prints, normally `http://localhost:5173`.
 | Parameter | Example        | Effect                                              |
 | --------- | -------------- | --------------------------------------------------- |
 | `t`       | `?t=2.5`       | Opens at a time in seconds                          |
+| `frame`   | `?frame=75`    | Opens at a frame number, counted from 0             |
+| `view`    | `?view=timing` | Opens the Animation Timing Lab                      |
+| `tab`     | `?tab=spacing` | Lab tab: `fps`, `exposure`, `spacing` or `timing`   |
 | `aspect`  | `?aspect=9:16` | Opens with `16:9`, `9:16` or `1:1`                  |
 | `debug`   | `?debug=1`     | Exposes `window.__studioDebug` for lifecycle checks |
 
 ## Documentation
 
-- Architecture: [overview](docs/architecture/overview.md),
+- Architecture: [overview](docs/architecture/overview.md), [timing](docs/architecture/timing.md),
   [data contracts](docs/architecture/data-contracts.md)
 - Production: [visual QA](docs/production/visual-qa.md),
   [assets and binaries](docs/production/assets-and-binaries.md),

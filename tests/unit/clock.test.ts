@@ -25,7 +25,7 @@ describe('Clock', () => {
     rootTime = gsap.ticker.time;
     gsap.updateRoot(rootTime);
     onChange = vi.fn<() => void>();
-    clock = new Clock({ duration: 10, onChange });
+    clock = new Clock({ duration: 10, fps: 30, onChange });
   });
 
   afterEach(() => {
@@ -51,7 +51,7 @@ describe('Clock', () => {
     const fine = clock.time;
     clock.destroy();
 
-    clock = new Clock({ duration: 10, onChange });
+    clock = new Clock({ duration: 10, fps: 30, onChange });
     clock.play();
     advance(1);
     expect(fine).toBeCloseTo(clock.time, 5);

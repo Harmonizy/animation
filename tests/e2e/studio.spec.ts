@@ -136,7 +136,8 @@ test.describe('studio', () => {
     await openStudio(page);
     const before = await canvasShot(page);
     await seekTo(page, 2.5);
-    await expect(page.locator('#readout')).toContainText('2.50 / 8.00 s');
+    await expect(page.locator('#timecode')).toHaveText('00:00:02:15');
+    await expect(page.locator('#frame-counter')).toHaveText('frame 75 / 240');
     expect((await canvasShot(page)).equals(before)).toBe(false);
   });
 
@@ -154,7 +155,7 @@ test.describe('studio', () => {
     const play = page.locator('#play');
     await play.click();
     await expect(play).toHaveText('Play', { timeout: 5000 });
-    expect(await currentTime(page)).toBe(8);
+    expect(await currentTime(page)).toBeCloseTo(239 / 30);
     await play.click();
     await expect(play).toHaveText('Pause');
     expect(await currentTime(page)).toBeLessThan(1);
@@ -257,7 +258,18 @@ test.describe('studio', () => {
         }));
         expect(overflow).toEqual({ x: 0, y: 0 });
 
-        for (const selector of ['#preview canvas', '#play', '#restart', '#seek', '#readout']) {
+        for (const selector of [
+          '#preview canvas',
+          '#play',
+          '#restart',
+          '#step-back',
+          '#step-forward',
+          '#loop',
+          '#speed',
+          '#seek',
+          '#timecode',
+          '#frame-counter',
+        ]) {
           const box = await page.locator(selector).boundingBox();
           expect(box, selector).not.toBeNull();
           if (!box) continue;

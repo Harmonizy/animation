@@ -1,7 +1,7 @@
 # Proposal: Cinematic Minimalist Silhouette
 
 **Status: awaiting owner approval. Nothing here is implemented.** It overlaps Phases 2 and 3, which are
-not yet authorized.
+not yet authorized beyond the timing engine. It comes after the timing engine and builds on it.
 
 ## Goal
 
@@ -75,7 +75,14 @@ These are starting hypotheses to test in the labs, not rules.
 The pure-evaluation rule still applies: pose, parallax and palette all resolve inside `evaluateScene`.
 Fog "drift" comes from tracks rather than random noise.
 
-`schemaVersion` moves to 2, with a tested migration from version 1.
+`schemaVersion` moves to 3, with a tested migration from version 2.
+
+### What the timing engine provides
+
+- Pose tracks join the `character` group, so On Ones and On Twos can be compared directly.
+- Backgrounds and fog use the `background` group, and the camera keeps its own hold.
+- All labs share the existing transport: step, loop, speed, timecode and frame counter.
+- Lab screenshots can target exact frames with `?frame=`.
 
 ### Three laboratories
 
@@ -90,7 +97,7 @@ and timeline scrubbing. The existing transport and aspect controls are shared.
 
 ### Increments
 
-1. Schema v2 and migration: palette tokens, `path` shape, draw order, with unit tests.
+1. Schema v3 and migration: palette tokens, `path` shape, draw order, with unit tests.
 2. Depth planes and parallax, with exact-math unit tests and pixel tests.
 3. SVG path rendering in Pixi, and a bounds calculation for paths.
 4. Poses and pose tracks.

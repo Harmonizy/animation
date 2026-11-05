@@ -44,21 +44,20 @@ approved character, **Harmonie (CHR-001)**: character sheet, rig, poses and a mo
 
 ## Verification
 
-Run after a clean `npm ci`, on Windows 11, Node 24.14.1, Chromium 156 with software GL.
+Harmonie branch, run on Linux, Node 22.23.4, Chromium (Playwright 1.64.1) with software GL, after a
+clean `npm ci`. Earlier phases were also verified on Windows 11, Node 24.14.1.
 
-| Check                  | Result                                           |
-| ---------------------- | ------------------------------------------------ |
-| `npm ci`               | Pass                                             |
-| `npm run format:check` | Pass                                             |
-| `npm run typecheck`    | Pass                                             |
-| `npm run lint`         | Pass                                             |
-| `npm test`             | Pass, 262 tests                                  |
-| `npm run build`        | Pass                                             |
-| `npm run test:e2e`     | Pass, 83 tests                                   |
-| `npm run capture`      | Pass, 38 setups                                  |
-| `npm audit --omit=dev` | 0 vulnerabilities                                |
-| Dev server             | Started, and used in the desktop browser pane    |
-| Screenshots viewed     | Yes. See [visual QA](../production/visual-qa.md) |
+| Check                    | Result                                                     |
+| ------------------------ | ---------------------------------------------------------- |
+| `npm run format:check`   | Pass                                                       |
+| `npm run typecheck`      | Pass                                                       |
+| `npm run lint`           | Pass                                                       |
+| `npm test`               | Pass, 303 tests                                            |
+| `npm run build`          | Pass                                                       |
+| `npm run test:e2e`       | Pass, 88 tests                                             |
+| `npm run capture`        | Pass, 45 setups                                            |
+| `npm run build:harmonie` | Committed SVG files match the generated output (unit test) |
+| Screenshots viewed       | Yes. See [visual QA](../production/visual-qa.md)           |
 
 ## Known limitations
 

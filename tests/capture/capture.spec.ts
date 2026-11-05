@@ -149,8 +149,8 @@ for (const file of ['harmonie-character-sheet', 'harmonie-rig'] as const) {
   });
 }
 
-/** Idle, walk keys, reach and the cloth test, on the 24 fps grid. */
-const HARMONIE_TIMES = [0, 2, 4, 4.25, 4.5, 4.75, 9.5, 10, 12.2, 12.5, 12.8, 13.9];
+/** Idle, walk keys, reach and the cloth test. Every time is a whole frame at 24 fps. */
+const HARMONIE_TIMES = [0, 2, 4, 4.25, 4.5, 4.75, 9.5, 10, 12.25, 12.5, 12.75, 13.875];
 const HARMONIE_SETUPS = [
   { name: '16x9', viewport: VIEWPORTS.landscape, aspect: '16:9', display: 'normal' },
   { name: '1x1', viewport: VIEWPORTS.landscape, aspect: '1:1', display: 'normal' },

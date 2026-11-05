@@ -7,6 +7,7 @@ const VIEWS = [
   ['geometric', 'Lab: Geometric minimalism'],
   ['articulated', 'Lab: Articulated silhouette'],
   ['atmospheric', 'Lab: Layered atmospheric'],
+  ['harmonie', 'Character: Harmonie (CHR-001)'],
 ] as const;
 
 export function createViewNav(current: string): HTMLElement {

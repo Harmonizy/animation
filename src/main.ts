@@ -1,3 +1,4 @@
+import { harmoniePreviewProject } from './characters/harmonie/harmonie-scene';
 import { parseProject } from './core/schema';
 import { geometricDemo } from './demos/geometricDemo';
 import { STYLE_LABS, isStyleLabId } from './labs/silhouette/labs';
@@ -24,6 +25,12 @@ const createRenderer = () => new PixiRenderer();
 
 if (view === 'timing') {
   await createTimingLab(root, { params, createRenderer });
+} else if (view === 'harmonie') {
+  const project = parseProject(harmoniePreviewProject());
+  const scene = project.scenes[0];
+  if (!scene) throw new Error('The Harmonie preview has no scenes');
+  const studio = await createStudio(root, { project, scene, params, createRenderer, view });
+  if (params.get('debug') === '1') window.__studioDebug = studio;
 } else if (isStyleLabId(view)) {
   const lab = STYLE_LABS[view];
   const project = parseProject(lab.build());

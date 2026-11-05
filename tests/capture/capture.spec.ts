@@ -131,3 +131,58 @@ for (const lab of STYLE_LABS) {
     });
   }
 }
+
+/* Harmonie (CHR-001): the generated SVG files, opened in the browser, and the motion preview. */
+
+for (const file of ['harmonie-character-sheet', 'harmonie-rig'] as const) {
+  test(`capture ${file}`, async ({ page }) => {
+    const directory = join(OUTPUT, 'harmonie');
+    mkdirSync(directory, { recursive: true });
+    const svg = readFileSync(`assets/characters/harmonie/${file}.svg`, 'utf8');
+    const size = /viewBox="0 0 (\d+) (\d+)"/.exec(svg);
+    await page.setViewportSize({ width: Number(size?.[1]), height: Number(size?.[2]) });
+    await page.setContent(`<!doctype html><body style="margin:0">${svg}</body>`);
+    await page
+      .locator('svg')
+      .first()
+      .screenshot({ path: join(directory, `${file}.png`) });
+  });
+}
+
+/** Idle, walk keys, reach and the cloth test, on the 24 fps grid. */
+const HARMONIE_TIMES = [0, 2, 4, 4.25, 4.5, 4.75, 9.5, 10, 12.2, 12.5, 12.8, 13.9];
+const HARMONIE_SETUPS = [
+  { name: '16x9', viewport: VIEWPORTS.landscape, aspect: '16:9', display: 'normal' },
+  { name: '1x1', viewport: VIEWPORTS.landscape, aspect: '1:1', display: 'normal' },
+  { name: '9x16', viewport: VIEWPORTS.portrait, aspect: '9:16', display: 'normal' },
+  { name: 'silhouette', viewport: VIEWPORTS.landscape, aspect: '16:9', display: 'silhouette' },
+] as const;
+
+for (const setup of HARMONIE_SETUPS) {
+  test(`capture harmonie preview ${setup.name}`, async ({ page }) => {
+    const directory = join(OUTPUT, `harmonie-preview-${setup.name}`);
+    mkdirSync(directory, { recursive: true });
+    await page.setViewportSize(setup.viewport);
+    await openStudio(page, `?view=harmonie&aspect=${setup.aspect}&display=${setup.display}`);
+    for (const time of HARMONIE_TIMES) {
+      await seekTo(page, time);
+      await page.locator('#preview canvas').screenshot({ path: join(directory, fileName(time)) });
+      if (time === 4.5) await page.screenshot({ path: join(directory, 'workspace.png') });
+    }
+    await contactSheet(page, directory, HARMONIE_TIMES);
+  });
+}
+
+test('capture harmonie walk cycle strip', async ({ page }) => {
+  // Every drawing of one cycle on twos: twelve drawings in 24 frames.
+  const directory = join(OUTPUT, 'harmonie-walk-strip');
+  mkdirSync(directory, { recursive: true });
+  await page.setViewportSize(VIEWPORTS.landscape);
+  await openStudio(page, '?view=harmonie');
+  const times = Array.from({ length: 12 }, (_, index) => (96 + index * 2) / 24);
+  for (const time of times) {
+    await seekTo(page, time);
+    await page.locator('#preview canvas').screenshot({ path: join(directory, fileName(time)) });
+  }
+  await contactSheet(page, directory, times);
+});

@@ -6,7 +6,7 @@ type SceneInput = ProjectInput['scenes'][number];
 
 function projectWith(changes: Partial<SceneInput>): ProjectInput {
   return {
-    schemaVersion: 1,
+    schemaVersion: 3,
     id: 'test',
     name: 'Test',
     kind: 'technical-demo',
@@ -15,6 +15,7 @@ function projectWith(changes: Partial<SceneInput>): ProjectInput {
         id: 'scene',
         duration: 2,
         fps: 30,
+        exportFps: 30,
         background: '#000000',
         safeArea: { x: 0, y: 0, width: 100, height: 100 },
         nodes: [{ id: 'a', shape: { kind: 'group' } }],
@@ -119,8 +120,28 @@ describe('parseProject', () => {
     expect(() => parseProject(projectWith(changes))).toThrow();
   });
 
+  it('upgrades version 1 projects, exporting at the project frame rate', () => {
+    const v2 = projectWith({});
+    const scene = v2.scenes[0] as Record<string, unknown>;
+    delete scene['exportFps'];
+    const upgraded = parseProject({ ...v2, schemaVersion: 1 });
+    expect(upgraded.schemaVersion).toBe(3);
+    expect(upgraded.scenes[0]?.exportFps).toBe(30);
+    expect(upgraded.scenes[0]?.exposure.character).toBe(1);
+  });
+
+  it('rejects unsupported frame rates, even when upgrading', () => {
+    expect(() => parseProject(projectWith({ fps: 15 as 12 }))).toThrow();
+    expect(() => parseProject({ ...projectWith({ fps: 15 as 12 }), schemaVersion: 1 })).toThrow();
+  });
+
+  it('rejects holds that are not whole numbers of at least one frame', () => {
+    expect(() => parseProject(projectWith({ exposure: { character: 0 } }))).toThrow();
+    expect(() => parseProject(projectWith({ exposure: { character: 1.5 } }))).toThrow();
+  });
+
   it('rejects unknown schema versions and unknown fields', () => {
-    expect(() => parseProject({ ...projectWith({}), schemaVersion: 2 })).toThrow();
+    expect(() => parseProject({ ...projectWith({}), schemaVersion: 99 })).toThrow();
     expect(() => parseProject({ ...projectWith({}), extra: true })).toThrow();
   });
 });

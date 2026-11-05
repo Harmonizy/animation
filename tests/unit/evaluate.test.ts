@@ -9,7 +9,7 @@ type SceneInput = ProjectInput['scenes'][number];
 
 function sceneOf(changes: Partial<SceneInput>): Scene {
   const scene = parseProject({
-    schemaVersion: 1,
+    schemaVersion: 3,
     id: 'test',
     name: 'Test',
     kind: 'technical-demo',
@@ -18,6 +18,7 @@ function sceneOf(changes: Partial<SceneInput>): Scene {
         id: 'scene',
         duration: 10,
         fps: 30,
+        exportFps: 30,
         background: '#000000',
         safeArea: { x: -50, y: -50, width: 100, height: 100 },
         nodes: [],
@@ -97,21 +98,19 @@ describe('evaluateScene', () => {
     expect(demo).toEqual(before);
   });
 
-  it('ends the demo on the same picture it starts with, so it loops cleanly', () => {
-    const first = evaluateScene(demo, 0);
-    const last = evaluateScene(demo, demo.duration);
-    expect(last.camera).toEqual(first.camera);
-    last.nodes.forEach((node, i) => {
-      expect(node.worldOpacity).toBeCloseTo(first.nodes[i]?.worldOpacity ?? -1);
-      node.worldMatrix.forEach((value, k) => {
-        expect(value, `${node.id}[${k}]`).toBeCloseTo(first.nodes[i]?.worldMatrix[k] ?? NaN, 6);
-      });
-    });
+  it('animates back to its starting values, so the frame after the last would match frame 0', () => {
+    for (const track of demo.tracks) {
+      const change =
+        evaluateKeyframes(track.keyframes, demo.duration) - evaluateKeyframes(track.keyframes, 0);
+      const remainder = track.property === 'rotation' ? change % 360 : change;
+      expect(remainder, `${track.target}.${track.property}`).toBeCloseTo(0);
+    }
   });
 
   it('clamps time to the scene', () => {
     expect(evaluateScene(demo, -5).time).toBe(0);
-    expect(evaluateScene(demo, 99).time).toBe(8);
+    expect(evaluateScene(demo, 99).frame).toBe(239);
+    expect(evaluateScene(demo, 99).time).toBeCloseTo(239 / 30);
   });
 
   it('composes transforms through the hierarchy', () => {

@@ -1,34 +1,45 @@
-import { evaluateScene } from '../core/evaluate';
+import {
+  evaluateFrame,
+  posePosition,
+  resolveHold,
+  type DisplayMode,
+  type EvaluationOverrides,
+} from '../core/evaluate';
 import { ASPECT_RATIOS, fitAspect, isAspectRatioName, type AspectRatioName } from '../core/framing';
 import type { Project, Scene } from '../core/schema';
+import {
+  EXPOSURE_PRESETS,
+  PROJECT_FPS,
+  TRACK_GROUPS,
+  frameCount,
+  frameToTime,
+  type ProjectFps,
+  type TrackGroup,
+} from '../core/timing';
 import { Clock } from '../playback/clock';
 import type { Renderer } from '../render/types';
+import { el, panelSection, select } from './dom';
+import { createTransport } from './transport';
+import { createViewNav } from './viewNav';
 
 export interface StudioOptions {
   readonly project: Project;
   readonly scene: Scene;
   readonly createRenderer: () => Renderer;
-  /** Initial time and aspect ratio, for reproducible links and screenshots. */
+  /** Initial time or frame, aspect ratio, display and palette, for reproducible links. */
   readonly params: URLSearchParams;
+  /** The current page, for the view selector. */
+  readonly view: string;
+  /** Named palettes to choose between. Without these the scene's own palette is used. */
+  readonly palettes?: Readonly<Record<string, Readonly<Record<string, string>>>>;
+  /** An extra panel section, such as a sheet of reusable parts. */
+  readonly extraPanel?: { readonly title: string; readonly content: HTMLElement };
 }
 
 export interface Studio {
   /** Destroys and recreates the renderer. Used to verify resource cleanup. */
   remountRenderer(): Promise<void>;
   destroy(): void;
-}
-
-type Attributes = Record<string, string>;
-
-function el<K extends keyof HTMLElementTagNameMap>(
-  tag: K,
-  attributes: Attributes = {},
-  ...children: (Node | string)[]
-): HTMLElementTagNameMap[K] {
-  const element = document.createElement(tag);
-  for (const [name, value] of Object.entries(attributes)) element.setAttribute(name, value);
-  element.append(...children);
-  return element;
 }
 
 function slider(id: string, label: string, min: number, max: number, step: number, value: number) {
@@ -45,7 +56,26 @@ function slider(id: string, label: string, min: number, max: number, step: numbe
   return { input, output, row };
 }
 
+const DISPLAY_OPTIONS = [
+  ['normal', 'Normal'],
+  ['silhouette', 'Silhouette (black fill)'],
+  ['grayscale', 'Grayscale (values)'],
+] as const;
+
+function isDisplayMode(value: string | null): value is DisplayMode {
+  return DISPLAY_OPTIONS.some(([mode]) => mode === value);
+}
+
 const CAMERA_PAN_RANGE = 400;
+const MAX_CUSTOM_HOLD = 120;
+const FPS_OPTIONS = PROJECT_FPS.map((fps) => [String(fps), `${fps} fps`] as const);
+const EXPOSURE_OPTIONS = [
+  [String(EXPOSURE_PRESETS.ones), 'Ones'],
+  [String(EXPOSURE_PRESETS.twos), 'Twos'],
+  [String(EXPOSURE_PRESETS.threes), 'Threes'],
+  [String(EXPOSURE_PRESETS.fours), 'Fours'],
+  ['custom', 'Custom'],
+] as const;
 
 export async function createStudio(root: HTMLElement, options: StudioOptions): Promise<Studio> {
   const { project, scene, params } = options;
@@ -54,6 +84,14 @@ export async function createStudio(root: HTMLElement, options: StudioOptions): P
   let aspect: AspectRatioName = isAspectRatioName(initialAspect) ? initialAspect : '16:9';
   let cameraOffset = { x: 0, y: 0 };
   let zoomFactor = 1;
+  let fps: ProjectFps = scene.fps;
+  let exportFps: ProjectFps = scene.exportFps;
+  let exposure: Partial<Record<TrackGroup, number>> = {};
+  const initialDisplay = params.get('display');
+  let display: DisplayMode = isDisplayMode(initialDisplay) ? initialDisplay : 'normal';
+  const paletteNames = Object.keys(options.palettes ?? {});
+  const initialPalette = params.get('palette') ?? '';
+  let paletteName = paletteNames.includes(initialPalette) ? initialPalette : null;
   /** Root nodes from back to front. */
   const defaultOrder = scene.nodes
     .filter((node) => node.parent === undefined)
@@ -63,29 +101,26 @@ export async function createStudio(root: HTMLElement, options: StudioOptions): P
   let order = [...defaultOrder];
   let layerOverrides: Record<string, number> = {};
 
+  const overrides = (): EvaluationOverrides => ({
+    cameraOffset,
+    zoomFactor,
+    layers: layerOverrides,
+    fps,
+    exposure,
+    display,
+    ...(paletteName === null ? {} : { palette: options.palettes?.[paletteName] ?? {} }),
+  });
+
   const preview = el('div', { id: 'preview', 'aria-label': 'Animation preview', role: 'img' });
   const stage = el('main', { id: 'stage' }, preview);
 
-  const playButton = el('button', { id: 'play', type: 'button', class: 'primary' }, 'Play');
-  const restartButton = el('button', { id: 'restart', type: 'button' }, 'Restart');
-  const seek = el('input', {
-    id: 'seek',
-    type: 'range',
-    min: '0',
-    max: String(scene.duration),
-    step: String(1 / scene.fps),
-    value: '0',
-    'aria-label': 'Seek',
+  const clock = new Clock({
+    duration: scene.duration,
+    fps: scene.fps,
+    onChange: () => refresh(),
   });
-  const readout = el('output', { id: 'readout', for: 'seek' });
-  const transport = el(
-    'section',
-    { id: 'transport', 'aria-label': 'Transport' },
-    playButton,
-    restartButton,
-    seek,
-    readout,
-  );
+  let shotLabel = '';
+  const transport = createTransport(clock, () => shotLabel);
 
   const aspectButtons = (Object.keys(ASPECT_RATIOS) as AspectRatioName[]).map((name) =>
     el('button', { type: 'button', 'data-aspect': name }, name),
@@ -97,12 +132,75 @@ export async function createStudio(root: HTMLElement, options: StudioOptions): P
   const layerList = el('ol', { id: 'layers' });
   const layersReset = el('button', { id: 'layers-reset', type: 'button' }, 'Reset layers');
 
-  const section = (title: string, ...children: Node[]) =>
-    el('section', { class: 'panel-section' }, el('h2', {}, title), ...children);
+  const fpsSelect = select('project-fps', FPS_OPTIONS, String(fps), 'Project frame rate');
+  const exportSelect = select('export-fps', FPS_OPTIONS, String(exportFps), 'Export frame rate');
+  const exportCount = el('output', { id: 'export-count', for: 'export-fps' });
+  const timingReset = el('button', { id: 'timing-reset', type: 'button' }, 'Reset timing');
+
+  const exposureControls = TRACK_GROUPS.map((group) => {
+    const hold = resolveHold(scene, group);
+    const isPreset = Object.values<number>(EXPOSURE_PRESETS).includes(hold);
+    const choice = select(
+      `exposure-${group}`,
+      EXPOSURE_OPTIONS,
+      isPreset ? String(hold) : 'custom',
+      `${group} exposure`,
+    );
+    const custom = el('input', {
+      id: `hold-${group}`,
+      type: 'number',
+      min: '1',
+      max: String(MAX_CUSTOM_HOLD),
+      step: '1',
+      value: String(hold),
+      'aria-label': `${group} custom hold frames`,
+    });
+    custom.hidden = isPreset;
+    const pose = el('output', { id: `pose-${group}`, for: `exposure-${group}` });
+    const row = el(
+      'div',
+      { class: 'exposure-row' },
+      el('label', { for: `exposure-${group}` }, group),
+      choice,
+      custom,
+      pose,
+    );
+
+    const apply = () => {
+      custom.hidden = choice.value !== 'custom';
+      const raw = choice.value === 'custom' ? custom.valueAsNumber : Number(choice.value);
+      if (!Number.isInteger(raw) || raw < 1 || raw > MAX_CUSTOM_HOLD) {
+        custom.setAttribute('aria-invalid', 'true');
+        return;
+      }
+      custom.removeAttribute('aria-invalid');
+      exposure = { ...exposure, [group]: raw };
+      refresh(true);
+    };
+    choice.addEventListener('change', apply);
+    custom.addEventListener('input', apply);
+
+    const reset = () => {
+      choice.value = isPreset ? String(hold) : 'custom';
+      custom.value = String(hold);
+      custom.hidden = isPreset;
+      custom.removeAttribute('aria-invalid');
+    };
+    return { group, pose, reset, row };
+  });
+
+  const displaySelect = select('display', DISPLAY_OPTIONS, display, 'Display mode');
+  const paletteSelect = select(
+    'palette',
+    [['', 'Scene palette'], ...paletteNames.map((name) => [name, name] as const)],
+    paletteName ?? '',
+    'Palette',
+  );
+
   const panel = el(
     'aside',
     { id: 'panel' },
-    section(
+    panelSection(
       'Aspect ratio',
       el(
         'div',
@@ -110,8 +208,39 @@ export async function createStudio(root: HTMLElement, options: StudioOptions): P
         ...aspectButtons,
       ),
     ),
-    section('Camera offset', panX.row, panY.row, zoom.row, cameraReset),
-    section('Layers (top first)', layerList, layersReset),
+    panelSection(
+      'Look',
+      el('div', { class: 'field-row' }, el('label', { for: 'display' }, 'Display'), displaySelect),
+      ...(paletteNames.length > 0
+        ? [
+            el(
+              'div',
+              { class: 'field-row' },
+              el('label', { for: 'palette' }, 'Palette'),
+              paletteSelect,
+            ),
+          ]
+        : []),
+    ),
+    panelSection(
+      'Timing',
+      el('div', { class: 'field-row' }, el('label', { for: 'project-fps' }, 'Project'), fpsSelect),
+      el(
+        'div',
+        { class: 'field-row' },
+        el('label', { for: 'export-fps' }, 'Export'),
+        exportSelect,
+        exportCount,
+      ),
+      el('h3', {}, 'Exposure'),
+      ...exposureControls.map((control) => control.row),
+      timingReset,
+    ),
+    panelSection('Camera offset', panX.row, panY.row, zoom.row, cameraReset),
+    panelSection('Layers (top first)', layerList, layersReset),
+    ...(options.extraPanel
+      ? [panelSection(options.extraPanel.title, options.extraPanel.content)]
+      : []),
   );
   const header = el(
     'header',
@@ -122,28 +251,39 @@ export async function createStudio(root: HTMLElement, options: StudioOptions): P
       { id: 'project-label' },
       project.kind === 'technical-demo' ? `Technical demo: ${project.name}` : project.name,
     ),
+    createViewNav(options.view),
   );
-  root.replaceChildren(header, stage, panel, transport);
+  root.replaceChildren(header, stage, panel, transport.element);
 
-  const clock = new Clock({ duration: scene.duration, onChange: () => draw() });
   let renderer = options.createRenderer();
+  let mounted = false;
   let renderCount = 0;
+  let drawnFrame = -1;
 
-  function draw(): void {
-    const time = clock.time;
-    const frame = evaluateScene(scene, time, {
-      cameraOffset,
-      zoomFactor,
-      layers: layerOverrides,
-    });
-    renderer.render(frame);
-    renderCount += 1;
+  /**
+   * Updates the readouts, and draws only when the picture can differ. A fast display calls this
+   * many times per project frame, so its refresh rate never adds renders.
+   */
+  function refresh(pictureChanged = false): void {
+    const frame = clock.frame;
+    if (!mounted) return;
+    if (pictureChanged || frame !== drawnFrame) {
+      const state = evaluateFrame(scene, frame, overrides());
+      renderer.render(state);
+      renderCount += 1;
+      drawnFrame = frame;
+      shotLabel = state.shotId;
+    }
+    transport.update();
 
-    playButton.textContent = clock.playing ? 'Pause' : 'Play';
-    seek.value = String(time);
-    const frameNumber = Math.round(time * scene.fps);
-    readout.textContent = `${time.toFixed(2)} / ${scene.duration.toFixed(2)} s · frame ${frameNumber} · ${frame.shotId}`;
-    preview.dataset['time'] = String(time);
+    for (const { group, pose } of exposureControls) {
+      pose.textContent = `pose ${posePosition(scene, group, frame, overrides())}`;
+    }
+    exportCount.textContent = `${frameCount(scene.duration, exportFps)} frames`;
+    preview.dataset['frame'] = String(frame);
+    preview.dataset['fps'] = String(clock.fps);
+    preview.dataset['time'] = String(frameToTime(frame, clock.fps));
+    preview.dataset['playhead'] = String(clock.time);
     preview.dataset['renders'] = String(renderCount);
   }
 
@@ -175,7 +315,7 @@ export async function createStudio(root: HTMLElement, options: StudioOptions): P
     order[from] = other;
     layerOverrides = Object.fromEntries(order.map((nodeId, index) => [nodeId, index]));
     renderLayerList();
-    draw();
+    refresh(true);
   }
 
   function renderLayerList(): void {
@@ -201,25 +341,49 @@ export async function createStudio(root: HTMLElement, options: StudioOptions): P
     );
   }
 
-  playButton.addEventListener('click', () => (clock.playing ? clock.pause() : clock.play()));
-  restartButton.addEventListener('click', () => clock.restart());
-  seek.addEventListener('input', () => clock.seek(Number(seek.value)));
-
   for (const button of aspectButtons) {
     button.addEventListener('click', () => {
       const name = button.dataset['aspect'] ?? '';
       if (!isAspectRatioName(name)) return;
       aspect = name;
       applySize();
-      draw();
+      refresh(true);
     });
   }
+
+  fpsSelect.addEventListener('change', () => {
+    fps = Number(fpsSelect.value) as ProjectFps;
+    clock.fps = fps;
+    refresh(true);
+  });
+  exportSelect.addEventListener('change', () => {
+    exportFps = Number(exportSelect.value) as ProjectFps;
+    refresh();
+  });
+  displaySelect.addEventListener('change', () => {
+    display = isDisplayMode(displaySelect.value) ? displaySelect.value : 'normal';
+    refresh(true);
+  });
+  paletteSelect.addEventListener('change', () => {
+    paletteName = paletteSelect.value === '' ? null : paletteSelect.value;
+    refresh(true);
+  });
+  timingReset.addEventListener('click', () => {
+    fps = scene.fps;
+    exportFps = scene.exportFps;
+    exposure = {};
+    fpsSelect.value = String(fps);
+    exportSelect.value = String(exportFps);
+    for (const control of exposureControls) control.reset();
+    clock.fps = fps;
+    refresh(true);
+  });
 
   const onCameraInput = () => {
     cameraOffset = { x: Number(panX.input.value), y: Number(panY.input.value) };
     zoomFactor = Number(zoom.input.value);
     updateCameraReadouts();
-    draw();
+    refresh(true);
   };
   for (const input of [panX.input, panY.input, zoom.input]) {
     input.addEventListener('input', onCameraInput);
@@ -234,7 +398,7 @@ export async function createStudio(root: HTMLElement, options: StudioOptions): P
     order = [...defaultOrder];
     layerOverrides = {};
     renderLayerList();
-    draw();
+    refresh(true);
   });
 
   updateCameraReadouts();
@@ -250,17 +414,20 @@ export async function createStudio(root: HTMLElement, options: StudioOptions): P
     );
     throw error;
   }
+  mounted = true;
 
   const initialTime = Number(params.get('t'));
-  if (params.has('t') && Number.isFinite(initialTime)) clock.seek(initialTime);
+  const initialFrame = Number(params.get('frame'));
+  if (params.has('frame') && Number.isFinite(initialFrame)) clock.seekFrame(initialFrame);
+  else if (params.has('t') && Number.isFinite(initialTime)) clock.seek(initialTime);
 
   const observer = new ResizeObserver(() => {
     applySize();
-    draw();
+    refresh(true);
   });
   observer.observe(stage);
   applySize();
-  draw();
+  refresh(true);
   preview.dataset['ready'] = 'true';
 
   return {
@@ -269,7 +436,7 @@ export async function createStudio(root: HTMLElement, options: StudioOptions): P
       renderer = options.createRenderer();
       await renderer.mount(preview);
       applySize();
-      draw();
+      refresh(true);
     },
     destroy() {
       observer.disconnect();

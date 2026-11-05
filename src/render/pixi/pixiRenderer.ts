@@ -3,6 +3,7 @@ import type { FrameState } from '../../core/evaluate';
 import { viewTransform, type Size } from '../../core/framing';
 import type { Mat2D } from '../../core/matrix';
 import type { Shape } from '../../core/schema';
+import { parseSvgPath } from '../../core/svgPath';
 import type { Renderer } from '../types';
 
 /** Keeps previews sharp on dense screens without paying for every physical pixel. */
@@ -11,23 +12,56 @@ const MAX_RESOLUTION = 2;
 interface DrawnNode {
   readonly graphics: Graphics;
   shape: Shape;
+  fill: string | null;
 }
 
-function drawShape(graphics: Graphics, shape: Shape): void {
+function tracePath(graphics: Graphics, d: string): void {
+  for (const command of parseSvgPath(d)) {
+    switch (command.type) {
+      case 'move':
+        graphics.moveTo(command.x, command.y);
+        break;
+      case 'line':
+        graphics.lineTo(command.x, command.y);
+        break;
+      case 'cubic':
+        graphics.bezierCurveTo(
+          command.x1,
+          command.y1,
+          command.x2,
+          command.y2,
+          command.x,
+          command.y,
+        );
+        break;
+      case 'quadratic':
+        graphics.quadraticCurveTo(command.x1, command.y1, command.x, command.y);
+        break;
+      case 'close':
+        graphics.closePath();
+        break;
+    }
+  }
+}
+
+function drawShape(graphics: Graphics, shape: Shape, fill: string | null): void {
   graphics.clear();
+  if (fill === null) return;
   switch (shape.kind) {
     case 'group':
       break;
     case 'rect':
-      graphics
-        .rect(-shape.width / 2, -shape.height / 2, shape.width, shape.height)
-        .fill(shape.fill);
+      graphics.rect(-shape.width / 2, -shape.height / 2, shape.width, shape.height).fill(fill);
       break;
     case 'ellipse':
-      graphics.ellipse(0, 0, shape.radiusX, shape.radiusY).fill(shape.fill);
+      graphics.ellipse(0, 0, shape.radiusX, shape.radiusY).fill(fill);
       break;
     case 'polygon':
-      graphics.poly(shape.points.flatMap((point) => [point.x, point.y])).fill(shape.fill);
+      graphics.poly(shape.points.flatMap((point) => [point.x, point.y])).fill(fill);
+      break;
+    case 'path':
+      tracePath(graphics, shape.d);
+      graphics.fill(fill);
       break;
   }
 }
@@ -69,19 +103,21 @@ export class PixiRenderer implements Renderer {
     frame.nodes.forEach((node, drawIndex) => {
       let entry = this.drawn.get(node.id);
       if (!entry) {
-        entry = { graphics: new Graphics(), shape: node.shape };
-        drawShape(entry.graphics, node.shape);
+        entry = { graphics: new Graphics(), shape: node.shape, fill: node.fill };
+        drawShape(entry.graphics, node.shape, node.fill);
         this.world.addChild(entry.graphics);
         this.drawn.set(node.id, entry);
-      } else if (entry.shape !== node.shape) {
+      } else if (entry.shape !== node.shape || entry.fill !== node.fill) {
         entry.shape = node.shape;
-        drawShape(entry.graphics, node.shape);
+        entry.fill = node.fill;
+        drawShape(entry.graphics, node.shape, node.fill);
       }
       this.applyMatrix(entry.graphics, node.worldMatrix);
       entry.graphics.alpha = node.worldOpacity;
       entry.graphics.zIndex = drawIndex;
     });
 
+    if (this.drawn.size > frame.nodes.length) this.removeNodesMissingFrom(frame);
     this.app.render();
   }
 
@@ -90,6 +126,15 @@ export class PixiRenderer implements Renderer {
     this.mounted = false;
     this.drawn.clear();
     this.app.destroy({ removeView: true }, { children: true });
+  }
+
+  private removeNodesMissingFrom(frame: FrameState): void {
+    const present = new Set(frame.nodes.map((node) => node.id));
+    for (const [id, entry] of this.drawn) {
+      if (present.has(id)) continue;
+      entry.graphics.destroy();
+      this.drawn.delete(id);
+    }
   }
 
   private applyMatrix(target: Container, m: Mat2D): void {

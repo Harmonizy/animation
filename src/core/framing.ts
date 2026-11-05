@@ -2,6 +2,7 @@ import { applyToPoint, multiply, rotationDegrees, translation, scaling } from '.
 import type { Mat2D, Point } from './matrix';
 import type { EvaluatedNode } from './evaluate';
 import type { Camera, Rect, Shape } from './schema';
+import { flattenSvgPath } from './svgPath';
 
 export const ASPECT_RATIOS = {
   '16:9': 16 / 9,
@@ -67,6 +68,8 @@ function shapeOutline(shape: Shape): readonly Point[] {
       });
     case 'polygon':
       return shape.points;
+    case 'path':
+      return flattenSvgPath(shape.d);
   }
 }
 

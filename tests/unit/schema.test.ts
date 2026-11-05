@@ -6,7 +6,7 @@ type SceneInput = ProjectInput['scenes'][number];
 
 function projectWith(changes: Partial<SceneInput>): ProjectInput {
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     id: 'test',
     name: 'Test',
     kind: 'technical-demo',
@@ -125,7 +125,7 @@ describe('parseProject', () => {
     const scene = v2.scenes[0] as Record<string, unknown>;
     delete scene['exportFps'];
     const upgraded = parseProject({ ...v2, schemaVersion: 1 });
-    expect(upgraded.schemaVersion).toBe(2);
+    expect(upgraded.schemaVersion).toBe(3);
     expect(upgraded.scenes[0]?.exportFps).toBe(30);
     expect(upgraded.scenes[0]?.exposure.character).toBe(1);
   });

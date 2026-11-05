@@ -157,6 +157,7 @@ export function createLabScene(laneSpecs: readonly LaneSpec[]): LabScene {
   const staticNode = (id: string, shape: Shape, x: number, y: number): EvaluatedNode => ({
     id,
     shape,
+    fill: 'fill' in shape ? shape.fill : null,
     layer: 0,
     worldMatrix: translation(x, y),
     worldOpacity: 1,

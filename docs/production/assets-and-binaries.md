@@ -1,0 +1,31 @@
+# Assets and binary files
+
+Phase 1 uses no external assets. The demo is drawn from data.
+
+## Licensing and provenance
+
+Before any asset enters the repository, record its:
+
+- source URL or author
+- license, and proof of the right to use and redistribute it (the repository is public)
+- date added, and any changes made
+
+Assets without clear provenance are not committed. AI-generated assets record the tool used and its
+terms. The asset manifest is planned for Phase 3; until then, an asset needs owner approval first.
+
+## Binary files and generated output
+
+| Type                                   | Policy                                               |
+| -------------------------------------- | ---------------------------------------------------- |
+| Screenshots, renders, test evidence    | Not committed. They go to `artifacts/` (git-ignored) |
+| Video output (`.mp4`, `.mov`, `.webm`) | Not committed. Git-ignored                           |
+| Archives (`.zip`, `.7z`, `.rar`)       | Not committed. Git-ignored                           |
+| Small vector or source assets          | May be committed with provenance                     |
+| Files over 50 MB                       | Do not commit. Discuss Git LFS or external storage   |
+
+GitHub rejects files over 100 MB. Committed binaries stay in history permanently, even after deletion.
+
+## Secrets
+
+Never commit tokens, keys, credentials or `.env` files. The project currently needs no secrets. If one
+is ever committed, treat it as compromised and rotate it: deleting the file is not enough.

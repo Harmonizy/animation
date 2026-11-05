@@ -401,18 +401,18 @@ h3 {
   }
 }
 
-/* Keeps the whole transport on one row on a phone, leaving more room for the preview. */
+/* Keeps the whole transport on one row on a phone, whatever the font's width. */
 @media (max-width: 480px) {
   #transport-buttons {
+    display: grid;
+    grid-template-columns: 1.1fr 1.2fr 0.8fr 0.8fr 1fr 1.1fr;
     gap: 4px;
   }
 
-  #transport-buttons button {
-    padding: 0 8px;
-  }
-
-  #play {
-    width: 60px;
+  #transport-buttons > * {
+    width: 100%;
+    min-width: 0;
+    padding: 0 2px;
   }
 }
 

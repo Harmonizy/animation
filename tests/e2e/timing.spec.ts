@@ -200,6 +200,23 @@ test.describe('timeline', () => {
     expect(resumed).toBeLessThan(pausedAt + 0.6);
   });
 
+  for (const font of ['monospace', 'serif', 'sans-serif']) {
+    test(`the phone transport stays on one row in ${font}`, async ({ page }) => {
+      // System fonts differ between machines, and a wider one once wrapped this row on Linux only.
+      await page.setViewportSize(VIEWPORTS.portrait);
+      await openStudio(page);
+      await page.addStyleTag({ content: `* { font-family: ${font} !important; }` });
+      const tops = await page
+        .locator('#transport-buttons > *')
+        .evaluateAll((items) => items.map((item) => Math.round(item.getBoundingClientRect().top)));
+      expect(new Set(tops).size).toBe(1);
+      const row = await page
+        .locator('#transport-buttons')
+        .evaluate((element) => element.scrollWidth - element.clientWidth);
+      expect(row).toBeLessThanOrEqual(0);
+    });
+  }
+
   test('project frame rate changes the frame count, not the duration', async ({ page }) => {
     await openStudio(page, '?t=2');
     await expect(page.locator('#frame-counter')).toHaveText('frame 60 / 240');

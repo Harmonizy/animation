@@ -3,8 +3,9 @@
 Last updated: 2026-11-05. Branch: `integrate/timing-and-style-rjjke1`, not yet merged into `main`.
 
 `main` holds Phase 1, the timing engine and the style labs (PR #4). This branch adds the first
-approved character, **Harmonie (CHR-001)**: character sheet, rig, poses and a motion preview. See
-[Harmonie](../creative/harmonie.md).
+approved character, **Harmonie (CHR-001)**, and her first episode, **The Hollow Bell Crypt**: a 60 s
+vertical short rendered to MP4. See [Harmonie](../creative/harmonie.md) and
+[the episode](../../projects/harmonie/hollow-bell-crypt/README.md).
 
 ## Overall plan
 
@@ -18,6 +19,7 @@ approved character, **Harmonie (CHR-001)**: character sheet, rig, poses and a mo
 | Cinematic Minimalist Silhouette        | Approved. Foundation and three labs done, verified locally |
 | Visual QA review of the style labs     | Done, with open issues                                     |
 | Harmonie (CHR-001) design and rig      | Done, verified in Chromium. Not yet watched by a person    |
+| Episode: The Hollow Bell Crypt         | Video done without narration. Voice needs an API key       |
 | Other Phase 2 work and later phases    | Not authorized                                             |
 
 ## Implemented
@@ -39,6 +41,9 @@ approved character, **Harmonie (CHR-001)**: character sheet, rig, poses and a mo
   [visual style](../creative/visual-style.md).
 - Vitest, Playwright, screenshot capture, ESLint with import boundaries, Prettier and a CI workflow.
 - Node `depth`: draw order within a root, separate from the hierarchy.
+- Text and gradient shapes, and skipping invisible nodes when drawing.
+- The Hollow Bell Crypt: 12 shots from `episode.json`, bilingual burned-in subtitles, SRT and VTT,
+  a synthesised soundtrack, and `npm run render:episode` to a verified H.264/AAC MP4.
 - Harmonie (CHR-001): four-view turnaround, 21-node rig, leg IK, seven poses, a 2560x1800 SVG sheet,
   a rig SVG, and a 24 fps preview on twos (`?view=harmonie`). See [Harmonie](../creative/harmonie.md).
 
@@ -76,6 +81,8 @@ clean `npm ci`. Earlier phases were also verified on Windows 11, Node 24.14.1.
 - Style lab proportions, palettes and the walk are placeholders, with no per-aspect camera framing and no
   external `.svg` import. See [visual style](../creative/visual-style.md).
 - Technical demos only. They are not artwork, and make no claim of visual fidelity.
+- The episode has no narration until a Google Cloud Text-to-Speech key is provided, and nobody has
+  watched it at speed with sound. See [its status](../../projects/harmonie/hollow-bell-crypt/reports/production-status.md).
 - Harmonie: only the side view is animated, the walk is in place, cloth moves as rigid pieces, and no
   person has watched the motion. See [her open issues](../creative/harmonie.md#visual-qa-version-1).
 - `npm audit` (including dev tools) reports 10 moderate findings from `minimatch` through ESLint

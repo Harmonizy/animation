@@ -7,8 +7,8 @@ Written so that the next person or AI assistant needs no chat history. Rules are
 
 - Repository: `Harmonizy/animation` (**public**). Local folder: `C:\Users\gotji\Music\animation`.
 - `main` holds Phase 1, the timing engine and the style labs. PR #4 merged them, with CI passing.
-- `integrate/timing-and-style-rjjke1` adds Harmonie (CHR-001), the first approved character. It is
-  pushed but has no PR yet.
+- `integrate/timing-and-style-rjjke1` adds Harmonie (CHR-001) and the episode The Hollow Bell Crypt.
+  It is pushed but has no PR yet.
 - The older `phase-*` branches were merged as a stack and are no longer used for new work.
 - Phase 1, the timing engine, the style labs and Harmonie are implemented and verified. See [status](PROJECT_STATUS.md).
 
@@ -50,8 +50,11 @@ Start with `src/main.ts`, then:
 - `src/style/cinematicMinimalist.ts`: palette tokens.
 - `src/labs/silhouette/`: the mannequin and style labs. Read [visual style](../creative/visual-style.md).
 - `src/demos/geometricDemo.ts`: the demo as data.
-- `src/characters/harmonie/`: Harmonie's palette, rig, geometry, poses, preview and SVG sheet. Read
-  [Harmonie](../creative/harmonie.md) first. Rebuild the SVG files with `npm run build:harmonie`.
+- `src/characters/harmonie/`: Harmonie's palette, rig, geometry, poses, hand, preview and SVG sheet.
+  Read [Harmonie](../creative/harmonie.md) first. Rebuild the SVG files with `npm run build:harmonie`.
+- `projects/harmonie/hollow-bell-crypt/episode.json`: the episode's single source of timing, text,
+  sound and prices. Art is in `src/episodes/hollow-bell-crypt/`. Read its
+  [README](../../projects/harmonie/hollow-bell-crypt/README.md) for the render steps.
 
 ## Things that are easy to get wrong
 
@@ -65,6 +68,9 @@ Start with `src/main.ts`, then:
   poses use the scene.
 - `layer` only orders siblings, and children draw above their parent. `depth` reorders within a root,
   for rigs whose draw order differs from their hierarchy.
+- Episode cuts must fall on whole frames at 24 fps, and every capture time in tests must too.
+- JSON imports need `with { type: 'json' }`, or Playwright's loader rejects them.
+- Text is drawn by the renderer, so pages with text must load Noto Sans Thai before the first frame.
 - Harmonie's left and right are her own. The side rig is her left profile and must not be mirrored.
 - After changing Harmonie's geometry or poses, run `npm run build:harmonie`, look at the sheet, and
   commit the SVG files. A unit test fails if they are stale.
@@ -80,8 +86,9 @@ Start with `src/main.ts`, then:
 
 ## Waiting on the owner
 
-1. Review of Harmonie's sheet and motion preview, and of the labs.
-2. Reading the GSAP license if the studio may be distributed as a tool.
+1. A Google Cloud Text-to-Speech API key as `GOOGLE_TTS_API_KEY`, for the episode's narration.
+2. Watching the episode at speed with sound, and review of Harmonie's sheet and the labs.
+3. Reading the GSAP license if the studio may be distributed as a tool.
 
 ## Suggested next steps
 

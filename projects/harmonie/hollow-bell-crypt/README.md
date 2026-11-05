@@ -42,7 +42,7 @@ committed. Watch frame by frame in the studio at `?view=hollow-bell-crypt`.
 
 ## Narration
 
-The voice comes from **Gemini TTS** (`gemini-2.5-flash-preview-tts`, voice `Charon`) when
+The voice comes from **Gemini TTS** (`gemini-3.8-flash-tts`, voice `Charon`) when
 `GEMINI_API_KEY` is set, a key from Google AI Studio. Otherwise it uses Google Cloud Text-to-Speech
 with `GOOGLE_TTS_API_KEY`. Run the three commands above in order.
 

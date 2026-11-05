@@ -5,8 +5,9 @@
 //                                           otherwise Google Cloud TTS with GOOGLE_TTS_API_KEY
 //   npm run narration:episode -- --dry-run  prints the requests, sends nothing
 //   npm run narration:episode -- --force    remakes lines that already exist
+//   npm run narration:episode -- --only=S04,S05 --force   remakes just those lines
 //
-// Gemini options: GEMINI_TTS_MODEL (default gemini-2.5-flash-preview-tts),
+// Gemini options: GEMINI_TTS_MODEL (default gemini-3.8-flash-tts),
 //                 GEMINI_TTS_VOICE (default Charon, a calm and even voice).
 // Cloud options:  GOOGLE_TTS_VOICE (default th-TH-Neural2-C), GOOGLE_TTS_RATE (default 0.92).
 //
@@ -25,6 +26,10 @@ const OUT = 'artifacts/episode/narration';
 
 const dryRun = process.argv.includes('--dry-run');
 const force = process.argv.includes('--force');
+const only = process.argv
+  .find((arg) => arg.startsWith('--only='))
+  ?.slice(7)
+  .split(',');
 const geminiKey = process.env.GEMINI_API_KEY;
 const cloudKey = process.env.GOOGLE_TTS_API_KEY;
 const provider = geminiKey || (dryRun && !cloudKey) ? 'gemini' : 'cloud';
@@ -44,7 +49,7 @@ function geminiRequest(text) {
     'Read the following Thai narration as a calm, serious, mysterious storyteller: natural and ' +
     'unhurried, never shouting, not an announcer. Pause briefly at each "...". Speak only the Thai text.';
   return {
-    url: `https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_TTS_MODEL ?? 'gemini-2.5-flash-preview-tts'}:generateContent`,
+    url: `https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_TTS_MODEL ?? 'gemini-3.8-flash-tts'}:generateContent`,
     headers: [`x-goog-api-key: ${geminiKey ?? '<GEMINI_API_KEY>'}`],
     body: {
       contents: [{ parts: [{ text: `${style}\n\n${text}` }] }],
@@ -120,7 +125,7 @@ async function post(request) {
 mkdirSync(OUT, { recursive: true });
 console.log(`Voice: ${provider === 'gemini' ? 'Gemini TTS' : 'Google Cloud TTS'}`);
 let failed = 0;
-for (const line of script.lines) {
+for (const line of script.lines.filter((l) => !only || only.includes(l.shot))) {
   const request = provider === 'gemini' ? geminiRequest(line.text) : cloudRequest(line.text);
   if (dryRun) {
     console.log(`${line.shot}: POST ${request.url}\n  ${JSON.stringify(request.body)}`);
@@ -131,21 +136,31 @@ for (const line of script.lines) {
     console.log(`${file}: kept (use --force to remake)`);
     continue;
   }
-  const response = await post(request);
-  const raw = join(OUT, `${line.shot}.raw`);
-  let length;
-  if (provider === 'gemini') {
-    const part = response.candidates?.[0]?.content?.parts?.find((p) => p.inlineData);
-    if (!part) throw new Error(`${line.shot}: no audio in the response`);
-    writeFileSync(raw, Buffer.from(part.inlineData.data, 'base64'));
-    // Gemini returns signed 16-bit mono PCM; its MIME type names the rate, usually 24 kHz.
-    const rate = Number(/rate=(\d+)/.exec(part.inlineData.mimeType ?? '')?.[1] ?? 24000);
-    length = finishLine(raw, rate, file, line.maxDuration);
-  } else {
-    writeFileSync(raw, Buffer.from(response.audioContent, 'base64'));
-    length = finishLine(raw, 'wav', file, line.maxDuration);
+  let length = Infinity;
+  // A speech model occasionally runs on past the text. Ask again when the audio is far too long.
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const response = await post(request);
+    const raw = join(OUT, `${line.shot}.raw`);
+    if (provider === 'gemini') {
+      const part = response.candidates?.[0]?.content?.parts?.find((p) => p.inlineData);
+      if (!part) throw new Error(`${line.shot}: no audio in the response`);
+      writeFileSync(raw, Buffer.from(part.inlineData.data, 'base64'));
+      // Newer models return a WAV file; preview models return raw 16-bit mono PCM at the rate
+      // named in the MIME type.
+      const mime = part.inlineData.mimeType ?? '';
+      const format = mime.includes('wav') ? 'wav' : Number(/rate=(\d+)/.exec(mime)?.[1] ?? 24000);
+      length = finishLine(raw, format, file, line.maxDuration);
+    } else {
+      writeFileSync(raw, Buffer.from(response.audioContent, 'base64'));
+      length = finishLine(raw, 'wav', file, line.maxDuration);
+    }
+    rmSync(raw);
+    if (length <= line.maxDuration * 1.5) break;
+    console.log(
+      `  ${line.shot}: ${length.toFixed(1)} s is far too long for this line, asking again`,
+    );
+    await sleep(7_000);
   }
-  rmSync(raw);
   const fits = length <= line.maxDuration;
   if (!fits) failed++;
   console.log(

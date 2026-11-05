@@ -1,0 +1,246 @@
+:root {
+  color-scheme: dark;
+  --bg: #0c0d12;
+  --surface: #171922;
+  --surface-raised: #232631;
+  --border: #303441;
+  --text: #e9e9ee;
+  --text-muted: #a3a7b5;
+  --accent: #6ea8ff;
+  --accent-text: #0a1020;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  font-size: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+}
+
+#app {
+  display: grid;
+  height: 100dvh;
+  grid-template-areas:
+    'header header'
+    'stage panel'
+    'transport transport';
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) 280px;
+}
+
+#header {
+  grid-area: header;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+h1 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+#project-label {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+#stage {
+  grid-area: stage;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#preview {
+  flex: none;
+  overflow: hidden;
+  /* Marks the frame edge. An outline takes no space, so the canvas size is unaffected. */
+  outline: 1px solid var(--border);
+}
+
+#preview canvas {
+  display: block;
+}
+
+#render-error {
+  margin: 0;
+  padding: 16px;
+  color: #ffb4a8;
+}
+
+#panel {
+  grid-area: panel;
+  overflow-y: auto;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.panel-section {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-section:last-child {
+  border-bottom: 0;
+}
+
+h2 {
+  margin: 0 0 10px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+button {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-raised);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--text-muted);
+}
+
+button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+:is(button, input):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+button.primary,
+button[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+input[type='range'] {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.slider-row {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.slider-row output {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+#layers {
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+}
+
+#layers li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px 32px;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 0;
+}
+
+#layers li span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#layers li button {
+  padding: 0;
+}
+
+#transport {
+  grid-area: transport;
+  display: grid;
+  grid-template-columns: 80px auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+#readout {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Portrait and narrow screens: the preview stays first, controls scroll below it. */
+@media (max-width: 800px), (orientation: portrait) {
+  #app {
+    grid-template-areas:
+      'header'
+      'stage'
+      'transport'
+      'panel';
+    grid-template-rows: auto minmax(0, 1fr) auto minmax(0, 32dvh);
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #panel {
+    border-left: 0;
+    border-top: 1px solid var(--border);
+  }
+
+  #transport {
+    grid-template-columns: 80px auto minmax(0, 1fr);
+    border-bottom: 1px solid var(--border);
+  }
+
+  #seek {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  #readout {
+    justify-self: end;
+    font-size: 12px;
+  }
+}

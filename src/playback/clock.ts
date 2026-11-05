@@ -1,67 +1,67 @@
+import gsap from 'gsap';
+
 export interface ClockOptions {
   /** Timeline length in seconds. */
   readonly duration: number;
   /** Called whenever the time or the playing state may have changed. */
   readonly onChange: () => void;
-  /** Monotonic time in milliseconds. */
-  readonly now?: () => number;
-  readonly requestFrame?: (callback: () => void) => number;
-  readonly cancelFrame?: (handle: number) => void;
 }
 
+// Use real elapsed time. GSAP's default lag smoothing would shift the timeline after a stall.
+gsap.ticker.lagSmoothing(0);
+
 /**
- * The transport. Elapsed time is derived from a fixed anchor rather than accumulated
- * per frame, so playback does not drift and is independent of the frame rate.
+ * The transport, built on a paused GSAP timeline. GSAP only decides what the current
+ * time is. Frame contents come from core/evaluate, so any timestamp stays reproducible
+ * and this file is the only one that has to change if GSAP is ever replaced.
  */
 export class Clock {
   private readonly duration: number;
   private readonly onChange: () => void;
-  private readonly now: () => number;
-  private readonly requestFrame: (callback: () => void) => number;
-  private readonly cancelFrame: (handle: number) => void;
-
-  private anchorWall = 0;
-  private anchorTime = 0;
-  private frameHandle: number | null = null;
+  private readonly timeline: gsap.core.Timeline;
 
   constructor(options: ClockOptions) {
     this.duration = options.duration;
     this.onChange = options.onChange;
-    this.now = options.now ?? (() => performance.now());
-    this.requestFrame = options.requestFrame ?? ((callback) => requestAnimationFrame(callback));
-    this.cancelFrame = options.cancelFrame ?? ((handle) => cancelAnimationFrame(handle));
+    this.timeline = gsap.timeline({
+      paused: true,
+      onUpdate: () => this.onChange(),
+      onComplete: () => {
+        this.timeline.pause();
+        this.onChange();
+      },
+    });
+    // The timeline animates nothing visible: an empty tween only gives it a length.
+    this.timeline.to({}, { duration: this.duration, ease: 'none' });
   }
 
   get playing(): boolean {
-    return this.frameHandle !== null;
+    return !this.timeline.paused();
   }
 
   get time(): number {
-    if (!this.playing) return this.anchorTime;
-    const elapsed = (this.now() - this.anchorWall) / 1000;
-    return Math.min(this.duration, this.anchorTime + elapsed);
+    return this.timeline.time();
   }
 
   /** Starts playback. Playing from the end starts again from the beginning. */
   play(): void {
     if (this.playing) return;
-    if (this.anchorTime >= this.duration) this.anchorTime = 0;
-    this.anchorWall = this.now();
-    this.scheduleFrame();
+    if (this.time >= this.duration) this.timeline.seek(0, true);
+    this.timeline.play();
     this.onChange();
   }
 
   pause(): void {
     if (!this.playing) return;
-    this.anchorTime = this.time;
-    this.stopFrames();
+    this.timeline.pause();
     this.onChange();
   }
 
-  /** Jumps to a time, clamped to the timeline. Keeps playing if it was playing. */
+  /** Jumps to a time, clamped to the timeline. Keeps playing unless that reaches the end. */
   seek(time: number): void {
-    this.anchorTime = Math.min(this.duration, Math.max(0, time));
-    this.anchorWall = this.now();
+    const target = Math.min(this.duration, Math.max(0, time));
+    this.timeline.seek(target, true);
+    if (target >= this.duration) this.timeline.pause();
     this.onChange();
   }
 
@@ -71,26 +71,6 @@ export class Clock {
   }
 
   destroy(): void {
-    this.stopFrames();
-  }
-
-  private scheduleFrame(): void {
-    this.frameHandle = this.requestFrame(() => this.onFrame());
-  }
-
-  private stopFrames(): void {
-    if (this.frameHandle !== null) this.cancelFrame(this.frameHandle);
-    this.frameHandle = null;
-  }
-
-  private onFrame(): void {
-    const time = this.time;
-    if (time >= this.duration) {
-      this.anchorTime = this.duration;
-      this.frameHandle = null;
-    } else {
-      this.scheduleFrame();
-    }
-    this.onChange();
+    this.timeline.kill();
   }
 }

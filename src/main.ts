@@ -1,16 +1,29 @@
-import { Application, Graphics } from 'pixi.js';
+import { parseProject } from './core/schema';
+import { geometricDemo } from './demos/geometricDemo';
+import { PixiRenderer } from './render/pixi/pixiRenderer';
+import { createStudio, type Studio } from './studio/studio';
+import './studio/studio.css';
 
-// Temporary spike: proves Pixi renders under headless Chromium. Replaced by the studio.
-const app = new Application();
-await app.init({
-  width: 640,
-  height: 360,
-  autoStart: false,
-  preference: 'webgl',
-  background: 0x101018,
+declare global {
+  interface Window {
+    /** Only present with ?debug=1. */
+    __studioDebug?: Pick<Studio, 'remountRenderer'>;
+  }
+}
+
+const root = document.querySelector<HTMLElement>('#app');
+if (!root) throw new Error('Missing #app element');
+
+const project = parseProject(geometricDemo);
+const scene = project.scenes[0];
+if (!scene) throw new Error('The project has no scenes');
+
+const params = new URLSearchParams(window.location.search);
+const studio = await createStudio(root, {
+  project,
+  scene,
+  params,
+  createRenderer: () => new PixiRenderer(),
 });
-document.querySelector('#app')?.append(app.canvas);
-app.stage.addChild(new Graphics().rect(220, 80, 200, 200).fill(0xff5533));
-app.render();
-document.body.dataset['renderer'] = app.renderer.name;
-document.body.dataset['ready'] = 'true';
+
+if (params.get('debug') === '1') window.__studioDebug = studio;

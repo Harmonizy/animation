@@ -1,70 +1,72 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import gsap from 'gsap';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Clock } from '../../src/playback/clock';
 
 describe('Clock', () => {
-  let wall: number;
-  let pending: Map<number, () => void>;
-  let nextHandle: number;
+  let rootTime: number;
   let onChange: ReturnType<typeof vi.fn<() => void>>;
   let clock: Clock;
 
-  /** Advances fake time and fires the scheduled animation frame, if any. */
-  const advance = (milliseconds: number) => {
-    wall += milliseconds;
-    const callbacks = [...pending.values()];
-    pending.clear();
-    for (const callback of callbacks) callback();
+  /** Moves GSAP's root timeline by hand, standing in for animation frames. */
+  const advance = (seconds: number) => {
+    rootTime += seconds;
+    gsap.updateRoot(rootTime);
   };
 
+  beforeAll(() => {
+    gsap.ticker.remove(gsap.updateRoot);
+  });
+
+  afterAll(() => {
+    gsap.ticker.add(gsap.updateRoot);
+  });
+
   beforeEach(() => {
-    wall = 1000;
-    pending = new Map();
-    nextHandle = 1;
+    rootTime = gsap.ticker.time;
+    gsap.updateRoot(rootTime);
     onChange = vi.fn<() => void>();
-    clock = new Clock({
-      duration: 10,
-      onChange,
-      now: () => wall,
-      requestFrame: (callback) => {
-        const handle = nextHandle++;
-        pending.set(handle, callback);
-        return handle;
-      },
-      cancelFrame: (handle) => pending.delete(handle),
-    });
+    clock = new Clock({ duration: 10, onChange });
+  });
+
+  afterEach(() => {
+    clock.destroy();
   });
 
   it('starts paused at zero', () => {
     expect(clock.time).toBe(0);
     expect(clock.playing).toBe(false);
-    expect(pending.size).toBe(0);
   });
 
-  it('advances while playing and notifies on each frame', () => {
+  it('advances while playing and notifies on update', () => {
     clock.play();
     onChange.mockClear();
-    advance(500);
-    expect(clock.time).toBe(0.5);
-    expect(onChange).toHaveBeenCalledTimes(1);
+    advance(0.5);
+    expect(clock.time).toBeCloseTo(0.5, 5);
+    expect(onChange).toHaveBeenCalled();
   });
 
-  it('does not depend on the frame rate or accumulate error', () => {
+  it('reaches the same time at any update rate', () => {
     clock.play();
-    for (let i = 0; i < 1000; i++) advance(1000 / 144);
+    for (let i = 0; i < 144; i++) advance(1 / 144);
     const fine = clock.time;
-    expect(fine).toBeCloseTo(1000 / 144, 9);
+    clock.destroy();
+
+    clock = new Clock({ duration: 10, onChange });
+    clock.play();
+    advance(1);
+    expect(fine).toBeCloseTo(clock.time, 5);
+    expect(fine).toBeCloseTo(1, 5);
   });
 
   it('holds its time while paused and resumes from it', () => {
     clock.play();
-    advance(1000);
+    advance(1);
     clock.pause();
-    expect(pending.size).toBe(0);
-    wall += 5000;
-    expect(clock.time).toBe(1);
+    advance(5);
+    expect(clock.time).toBeCloseTo(1, 5);
     clock.play();
-    advance(1000);
-    expect(clock.time).toBe(2);
+    advance(1);
+    expect(clock.time).toBeCloseTo(2, 5);
   });
 
   it('seeks while paused and clamps to the timeline', () => {
@@ -79,10 +81,10 @@ describe('Clock', () => {
 
   it('keeps playing from the new time after a seek', () => {
     clock.play();
-    advance(1000);
+    advance(1);
     clock.seek(5);
-    advance(1000);
-    expect(clock.time).toBe(6);
+    advance(1);
+    expect(clock.time).toBeCloseTo(6, 5);
     expect(clock.playing).toBe(true);
   });
 
@@ -93,7 +95,7 @@ describe('Clock', () => {
     expect(clock.playing).toBe(false);
 
     clock.play();
-    advance(1000);
+    advance(1);
     clock.restart();
     expect(clock.time).toBe(0);
     expect(clock.playing).toBe(true);
@@ -101,30 +103,49 @@ describe('Clock', () => {
 
   it('stops exactly at the end and replays from the start', () => {
     clock.play();
-    advance(11000);
+    advance(11);
     expect(clock.time).toBe(10);
     expect(clock.playing).toBe(false);
-    expect(pending.size).toBe(0);
 
     clock.play();
     expect(clock.time).toBe(0);
     expect(clock.playing).toBe(true);
   });
 
+  it('does not resume by itself when seeking back after the end', () => {
+    clock.play();
+    advance(11);
+    clock.seek(2);
+    advance(1);
+    expect(clock.time).toBe(2);
+    expect(clock.playing).toBe(false);
+  });
+
+  it('stops when a seek lands on the end during playback', () => {
+    clock.play();
+    clock.seek(10);
+    expect(clock.playing).toBe(false);
+    clock.seek(3);
+    advance(1);
+    expect(clock.time).toBe(3);
+  });
+
   it('ignores repeated play and pause', () => {
     clock.play();
+    onChange.mockClear();
     clock.play();
-    expect(pending.size).toBe(1);
+    expect(onChange).not.toHaveBeenCalled();
     clock.pause();
     onChange.mockClear();
     clock.pause();
     expect(onChange).not.toHaveBeenCalled();
   });
 
-  it('destroy cancels pending frames', () => {
+  it('stops notifying after destroy', () => {
     clock.play();
     clock.destroy();
-    expect(pending.size).toBe(0);
-    expect(clock.playing).toBe(false);
+    onChange.mockClear();
+    advance(1);
+    expect(onChange).not.toHaveBeenCalled();
   });
 });

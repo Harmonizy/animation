@@ -97,6 +97,18 @@ describe('evaluateScene', () => {
     expect(demo).toEqual(before);
   });
 
+  it('ends the demo on the same picture it starts with, so it loops cleanly', () => {
+    const first = evaluateScene(demo, 0);
+    const last = evaluateScene(demo, demo.duration);
+    expect(last.camera).toEqual(first.camera);
+    last.nodes.forEach((node, i) => {
+      expect(node.worldOpacity).toBeCloseTo(first.nodes[i]?.worldOpacity ?? -1);
+      node.worldMatrix.forEach((value, k) => {
+        expect(value, `${node.id}[${k}]`).toBeCloseTo(first.nodes[i]?.worldMatrix[k] ?? NaN, 6);
+      });
+    });
+  });
+
   it('clamps time to the scene', () => {
     expect(evaluateScene(demo, -5).time).toBe(0);
     expect(evaluateScene(demo, 99).time).toBe(8);

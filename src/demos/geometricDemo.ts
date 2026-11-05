@@ -3,7 +3,8 @@ import type { ProjectInput } from '../core/schema';
 type SceneInput = ProjectInput['scenes'][number];
 type NodeInput = SceneInput['nodes'][number];
 
-const GRID_EXTENT = 2000;
+/** Reaches past the widest view: 16:9 at the minimum zoom with the camera fully panned. */
+const GRID_EXTENT = 3000;
 const GRID_STEP = 250;
 const GRID_COLOR = '#262b38';
 
@@ -56,7 +57,9 @@ export const geometricDemo: ProjectInput = {
         {
           id: 'circle',
           layer: 2,
-          shape: { kind: 'ellipse', radiusX: 170, radiusY: 170, fill: '#3f8cff' },
+          // Small enough to sit fully inside the square when they overlap, so neither
+          // silhouette is reduced to stray corners.
+          shape: { kind: 'ellipse', radiusX: 120, radiusY: 120, fill: '#3f8cff' },
           transform: { y: 200 },
         },
         {
@@ -65,31 +68,51 @@ export const geometricDemo: ProjectInput = {
           shape: {
             kind: 'polygon',
             points: [
-              { x: 0, y: -130 },
-              { x: 125, y: 90 },
-              { x: -125, y: 90 },
+              { x: 0, y: -125 },
+              { x: 110, y: 85 },
+              { x: -110, y: 85 },
             ],
             fill: '#2ec4a6',
           },
-          transform: { x: 330, y: -240 },
+          // Clear of the hub's orbit, so its faded state stays readable.
+          transform: { x: 390, y: -240 },
         },
-        { id: 'hub', layer: 4, shape: { kind: 'group' }, transform: { y: -180 } },
+        { id: 'hub', layer: 4, shape: { kind: 'group' }, transform: { y: -200 } },
+        // The arms make the parent-child structure visible in the silhouette.
+        {
+          id: 'hub-arm',
+          parent: 'hub',
+          layer: 0,
+          shape: { kind: 'rect', width: 160, height: 10, fill: '#8d8f99' },
+          transform: { x: 80 },
+        },
         {
           id: 'hub-core',
           parent: 'hub',
+          layer: 1,
           shape: { kind: 'rect', width: 90, height: 90, fill: '#e8e6df' },
         },
         {
           id: 'satellite',
           parent: 'hub',
-          shape: { kind: 'ellipse', radiusX: 55, radiusY: 55, fill: '#f2c14e' },
-          transform: { x: 200 },
+          layer: 2,
+          shape: { kind: 'ellipse', radiusX: 50, radiusY: 50, fill: '#f2c14e' },
+          transform: { x: 160 },
+        },
+        {
+          id: 'moon-arm',
+          parent: 'satellite',
+          layer: 0,
+          // Spans only the gap between the two discs: children draw above their parent.
+          shape: { kind: 'rect', width: 30, height: 6, fill: '#8d8f99' },
+          transform: { x: 65 },
         },
         {
           id: 'moon',
           parent: 'satellite',
+          layer: 1,
           shape: { kind: 'ellipse', radiusX: 24, radiusY: 24, fill: '#c77dff' },
-          transform: { x: 80 },
+          transform: { x: 95 },
         },
       ],
       tracks: [
@@ -132,9 +155,9 @@ export const geometricDemo: ProjectInput = {
           target: 'triangle',
           property: 'opacity',
           keyframes: [
-            { time: 0, value: 0.25, easing: 'easeOut' },
-            { time: 4, value: 1, easing: 'easeIn' },
-            { time: 8, value: 0.25 },
+            { time: 0, value: 0.45, easing: 'easeInOut' },
+            { time: 4, value: 1, easing: 'easeInOut' },
+            { time: 8, value: 0.45 },
           ],
         },
         {

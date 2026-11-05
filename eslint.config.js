@@ -16,8 +16,13 @@ export default tseslint.config(
   // Architecture boundaries: see docs/architecture/overview.md.
   restrict(
     ['src/core/**/*.ts', 'src/demos/**/*.ts'],
-    ['pixi.js', 'pixi.js/*', '**/render/**', '**/studio/**', '**/playback/**'],
-    'core and demos stay pure data and logic: no renderer, UI or playback imports.',
+    ['pixi.js', 'pixi.js/*', 'gsap', 'gsap/*', '**/render/**', '**/studio/**', '**/playback/**'],
+    'core and demos stay pure data and logic: no renderer, GSAP, UI or playback imports.',
+  ),
+  restrict(
+    ['src/render/**/*.ts', 'src/studio/**/*.ts', 'src/main.ts'],
+    ['gsap', 'gsap/*'],
+    'Only src/playback may import gsap.',
   ),
   restrict(
     ['src/playback/**/*.ts'],

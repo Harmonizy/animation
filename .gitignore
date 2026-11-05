@@ -1,0 +1,32 @@
+# Dependencies and build output
+node_modules/
+dist/
+
+# Generated evidence and renders: never committed (see docs/production/visual-qa.md)
+artifacts/
+playwright-report/
+test-results/
+*.mp4
+*.mov
+*.webm
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Tooling and OS
+.claude/settings.local.json
+.vscode/
+.idea/
+*.log
+.DS_Store
+Thumbs.db
+
+# Archives
+*.zip
+*.7z
+*.rar
+*.tar.gz

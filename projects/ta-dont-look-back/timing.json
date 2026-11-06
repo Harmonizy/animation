@@ -1,0 +1,65 @@
+{
+  "source": "planned",
+  "lines": [
+    {
+      "shotId": "S01",
+      "voice": "narrator",
+      "start": 0.3,
+      "duration": 3.55
+    },
+    {
+      "shotId": "S02",
+      "voice": "narrator",
+      "start": 4.3,
+      "duration": 5.55
+    },
+    {
+      "shotId": "S03",
+      "voice": "narrator",
+      "start": 10.3,
+      "duration": 5.55
+    },
+    {
+      "shotId": "S04",
+      "voice": "narrator",
+      "start": 16.3,
+      "duration": 4.55
+    },
+    {
+      "shotId": "S05",
+      "voice": "narrator",
+      "start": 21.3,
+      "duration": 5.55
+    },
+    {
+      "shotId": "S06",
+      "voice": "narrator",
+      "start": 27.3,
+      "duration": 5.55
+    },
+    {
+      "shotId": "S08",
+      "voice": "presence",
+      "start": 39.0,
+      "duration": 3.6
+    },
+    {
+      "shotId": "S09",
+      "voice": "narrator",
+      "start": 43.3,
+      "duration": 5.55
+    },
+    {
+      "shotId": "S10",
+      "voice": "narrator",
+      "start": 49.3,
+      "duration": 4.55
+    },
+    {
+      "shotId": "S11",
+      "voice": "narrator",
+      "start": 54.3,
+      "duration": 3.9
+    }
+  ]
+}

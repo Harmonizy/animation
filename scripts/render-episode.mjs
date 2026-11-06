@@ -1,23 +1,18 @@
 /* global console, process, window */
-// Renders The Hollow Bell Crypt frame by frame and encodes it.
+// Renders an episode frame by frame and encodes it.
 //
 //   npm run render:episode                    every frame, to an H.264 MP4 (and muxes audio if present)
+//   npm run render:episode -- --episode=ta-dont-look-back   another episode (default hollow-bell-crypt)
 //   npm run render:episode -- --stills=0,96   only these frames, as PNG files
 //
 // Frames are drawn by the same renderer as the browser preview, one exact frame index at a time,
-// so the video does not depend on how fast this machine is. Output goes to artifacts/episode/,
-// which is git-ignored.
+// so the video does not depend on how fast this machine is. Output goes to artifacts/episode/ for
+// the first episode and artifacts/<episode>/ for the others, all git-ignored.
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { chromium } from '@playwright/test';
 import { build, preview } from 'vite';
-
-const OUT = 'artifacts/episode';
-const WIDTH = 1080;
-const HEIGHT = 1920;
-const FPS = 24;
-const PORT = 4175;
 
 const args = Object.fromEntries(
   process.argv.slice(2).map((arg) => {
@@ -25,6 +20,14 @@ const args = Object.fromEntries(
     return [key, value];
   }),
 );
+
+const EPISODE = args.episode ?? 'hollow-bell-crypt';
+/** The first episode keeps its original folder; others get their own. */
+const OUT = EPISODE === 'hollow-bell-crypt' ? 'artifacts/episode' : `artifacts/${EPISODE}`;
+const WIDTH = 1080;
+const HEIGHT = 1920;
+const FPS = 24;
+const PORT = 4175;
 
 mkdirSync(OUT, { recursive: true });
 await build({ logLevel: 'warn' });
@@ -42,7 +45,7 @@ page.on('pageerror', (error) => problems.push(error.message));
 page.on('console', (message) => {
   if (message.type() === 'error') problems.push(message.text());
 });
-await page.goto(`http://127.0.0.1:${PORT}/?render=hollow-bell-crypt`);
+await page.goto(`http://127.0.0.1:${PORT}/?render=${EPISODE}`);
 await page.waitForSelector('#app[data-ready="true"]', { timeout: 60_000 });
 const frames = await page.evaluate(() => window.__episode?.frames ?? 0);
 const canvas = page.locator('canvas');
@@ -111,7 +114,7 @@ try {
     console.log(`Wrote ${silent}`);
 
     const audio = join(OUT, 'audio.wav');
-    const final = join(OUT, 'hollow-bell-crypt.mp4');
+    const final = join(OUT, `${EPISODE}.mp4`);
     if (existsSync(audio)) {
       const mux = spawnSync(
         'ffmpeg',

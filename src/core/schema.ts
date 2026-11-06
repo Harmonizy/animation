@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { EASING_NAMES } from './easing';
-import { isValidSvgPath } from './svgPath';
+import { isValidSvgPath, pathStructure } from './svgPath';
 import { PROJECT_FPS, TRACK_GROUPS } from './timing';
 
 export const NODE_PROPERTIES = ['x', 'y', 'rotation', 'scaleX', 'scaleY', 'opacity'] as const;
@@ -51,6 +51,26 @@ const NodeTrackSchema = z.strictObject({
   /** Overrides the scene's exposure for this track. */
   hold: Hold.optional(),
   keyframes,
+});
+
+/**
+ * Morphs a path node between path shapes over time, for things that deform rather than move,
+ * such as a shadow sliding over a wall. Every keyframe's path must use the same commands in the
+ * same order as the node's own path, so points can be interpolated one to one.
+ */
+const ShapeTrackSchema = z.strictObject({
+  target: Id,
+  group: z.enum(TRACK_GROUPS.filter((group) => group !== 'camera')).default('secondary'),
+  hold: Hold.optional(),
+  keyframes: z
+    .array(
+      z.strictObject({
+        time: Time,
+        d: z.string().refine(isValidSvgPath, 'Unsupported or malformed SVG path'),
+        easing: z.enum(EASING_NAMES).default('linear'),
+      }),
+    )
+    .min(1),
 });
 
 /** Times are in seconds relative to the start of the owning shot. */
@@ -127,6 +147,8 @@ const ShapeSchema = z.discriminatedUnion('kind', [
     /** Distance between baselines, as a multiple of the font size. */
     lineHeight: z.number().positive().default(1.35),
     letterSpacing: z.number().default(0),
+    /** `latin` uses Noto Sans, for text that is only in Latin script. */
+    font: z.enum(['thai', 'latin']).default('thai'),
   }),
   /**
    * A rectangle, centred on the origin, filled with a gradient: top to bottom, left to right, or
@@ -238,6 +260,7 @@ const SceneSchema = z
     safeArea: RectSchema,
     nodes: z.array(NodeSchema),
     tracks: z.array(NodeTrackSchema).default([]),
+    shapeTracks: z.array(ShapeTrackSchema).default([]),
     shots: z.array(ShotSchema).min(1),
   })
   .superRefine((scene, ctx) => {
@@ -325,6 +348,28 @@ const SceneSchema = z
       track.keyframes.forEach((frame, k) => {
         if (frame.time > scene.duration) {
           issue(['tracks', i, 'keyframes', k, 'time'], 'Keyframe is after the end of the scene');
+        }
+      });
+    });
+
+    const shapes = new Map(scene.nodes.map((node) => [node.id, node.shape]));
+    scene.shapeTracks.forEach((track, i) => {
+      const shape = shapes.get(track.target);
+      if (shape?.kind !== 'path') {
+        issue(['shapeTracks', i, 'target'], `"${track.target}" is not a path node`);
+        return;
+      }
+      const structure = pathStructure(shape.d);
+      track.keyframes.forEach((frame, k) => {
+        const path = ['shapeTracks', i, 'keyframes', k];
+        if (pathStructure(frame.d) !== structure) {
+          issue([...path, 'd'], 'Path must use the same commands as the node, in the same order');
+        }
+        if (frame.time > scene.duration)
+          issue([...path, 'time'], 'Keyframe is after the end of the scene');
+        const previous = track.keyframes[k - 1];
+        if (previous && frame.time <= previous.time) {
+          issue([...path, 'time'], 'Keyframe times must be strictly increasing');
         }
       });
     });

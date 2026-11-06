@@ -1,5 +1,8 @@
 import { EPISODE, itemById, priceLabel, subtitleCues, type EpisodeShot } from './episode';
-import { Build, fadeKeys, path, poly, rect, text, tk, vertical } from './kit';
+import { roundedRect, roundedRectRing } from '../shared/build';
+import { Build, fadeKeys, path, rect, text, tk, vertical } from './kit';
+
+export { roundedRect, roundedRectRing };
 
 /**
  * Burned-in text, on the screen plane so camera moves never touch it. Placement keeps clear of
@@ -162,58 +165,6 @@ export function priceTag(
   );
   build.track(tag, 'opacity', fadeKeys(window.start, window.end, 0.25), { hold: 1 });
   return tag;
-}
-
-export function roundedRect(width: number, height: number, radius: number): string {
-  const w = width / 2;
-  const h = height / 2;
-  const r = Math.min(radius, w, h);
-  const k = r * 0.55;
-  return [
-    `M ${-w + r} ${-h}`,
-    `L ${w - r} ${-h}`,
-    `C ${w - r + k} ${-h} ${w} ${-h + r - k} ${w} ${-h + r}`,
-    `L ${w} ${h - r}`,
-    `C ${w} ${h - r + k} ${w - r + k} ${h} ${w - r} ${h}`,
-    `L ${-w + r} ${h}`,
-    `C ${-w + r - k} ${h} ${-w} ${h - r + k} ${-w} ${h - r}`,
-    `L ${-w} ${-h + r}`,
-    `C ${-w} ${-h + r - k} ${-w + r - k} ${-h} ${-w + r} ${-h}`,
-    'Z',
-  ].join(' ');
-}
-
-/** A thin outline of a rounded rectangle, as a band between two outlines. */
-export function roundedRectRing(
-  width: number,
-  height: number,
-  radius: number,
-  thickness: number,
-): string {
-  const steps = 12;
-  const outline = (w: number, h: number, r: number): [number, number][] => {
-    const points: [number, number][] = [];
-    const corners: [number, number, number][] = [
-      [w - r, -h + r, -Math.PI / 2],
-      [w - r, h - r, 0],
-      [-w + r, h - r, Math.PI / 2],
-      [-w + r, -h + r, Math.PI],
-    ];
-    for (const [cx, cy, start] of corners) {
-      for (let i = 0; i <= steps; i++) {
-        const a = start + (i / steps) * (Math.PI / 2);
-        points.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
-      }
-    }
-    return points;
-  };
-  const outer = outline(width / 2, height / 2, radius);
-  const inner = outline(
-    width / 2 - thickness,
-    height / 2 - thickness,
-    radius - thickness,
-  ).reverse();
-  return poly([...outer, outer[0] as [number, number], ...inner, inner[0] as [number, number]]);
 }
 
 export function buildOverlay(): Build {

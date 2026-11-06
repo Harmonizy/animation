@@ -11,6 +11,8 @@ const MAX_RESOLUTION = 2;
 
 /** The studio typeface. Loaded by the page before anything with text is drawn. */
 export const STUDIO_FONT = '"Noto Sans Thai", "Noto Sans", sans-serif';
+/** For text set only in Latin script. */
+export const LATIN_FONT = '"Noto Sans", "Noto Sans Thai", sans-serif';
 
 /** Text is rasterised at this multiple, so it stays sharp when a camera move scales it up. */
 const TEXT_RESOLUTION = 2;
@@ -64,7 +66,7 @@ function createDisplay(node: EvaluatedNode): Graphics | Text {
 function drawText(text: Text, shape: Extract<Shape, { kind: 'text' }>, fill: string | null): void {
   text.text = shape.content;
   text.style = {
-    fontFamily: STUDIO_FONT,
+    fontFamily: shape.font === 'latin' ? LATIN_FONT : STUDIO_FONT,
     fontSize: shape.fontSize,
     fontWeight: String(shape.fontWeight) as '400',
     fill: fill ?? '#000000',

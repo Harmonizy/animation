@@ -185,3 +185,48 @@ export function flattenSvgPath(d: string): Point[] {
   }
   return points;
 }
+
+/** The command letters of a path, which must match for two paths to be interpolated. */
+export function pathStructure(d: string): string {
+  return parseSvgPath(d)
+    .map((command) => command.type[0])
+    .join('');
+}
+
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+const num = (value: number) => String(Math.round(value * 100) / 100);
+
+/**
+ * A path between `a` (t = 0) and `b` (t = 1), point by point. Both must have the same commands in
+ * the same order; the schema checks this for shape tracks.
+ */
+export function interpolatePaths(a: string, b: string, t: number): string {
+  if (t <= 0) return a;
+  if (t >= 1) return b;
+  const from = parseSvgPath(a);
+  const to = parseSvgPath(b);
+  return from
+    .map((command, i) => {
+      const other = to[i];
+      if (!other || other.type !== command.type) throw new Error('Paths do not match');
+      switch (command.type) {
+        case 'move':
+        case 'line': {
+          const o = other as typeof command;
+          const letter = command.type === 'move' ? 'M' : 'L';
+          return `${letter} ${num(lerp(command.x, o.x, t))} ${num(lerp(command.y, o.y, t))}`;
+        }
+        case 'cubic': {
+          const o = other as typeof command;
+          return `C ${num(lerp(command.x1, o.x1, t))} ${num(lerp(command.y1, o.y1, t))} ${num(lerp(command.x2, o.x2, t))} ${num(lerp(command.y2, o.y2, t))} ${num(lerp(command.x, o.x, t))} ${num(lerp(command.y, o.y, t))}`;
+        }
+        case 'quadratic': {
+          const o = other as typeof command;
+          return `Q ${num(lerp(command.x1, o.x1, t))} ${num(lerp(command.y1, o.y1, t))} ${num(lerp(command.x, o.x, t))} ${num(lerp(command.y, o.y, t))}`;
+        }
+        case 'close':
+          return 'Z';
+      }
+    })
+    .join(' ');
+}

@@ -2,6 +2,8 @@ import '@fontsource/noto-sans-thai/400.css';
 import '@fontsource/noto-sans-thai/500.css';
 import '@fontsource/noto-sans-thai/600.css';
 import '@fontsource/noto-sans-thai/700.css';
+import '@fontsource/noto-sans/400.css';
+import '@fontsource/noto-sans/600.css';
 import { harmoniePreviewProject } from './characters/harmonie/harmonie-scene';
 import { parseProject } from './core/schema';
 import { geometricDemo } from './demos/geometricDemo';
@@ -11,6 +13,7 @@ import { createTimingLab } from './labs/timing/timingLab';
 import { PixiRenderer } from './render/pixi/pixiRenderer';
 import { STYLE_PALETTES } from './style/cinematicMinimalist';
 import { hollowBellCryptProject } from './episodes/hollow-bell-crypt/scene';
+import { taDontLookBackProject } from './episodes/ta-dont-look-back/scene';
 import { mountEpisodeRender } from './studio/episodeRender';
 import { createStudio, type Studio } from './studio/studio';
 import './studio/studio.css';
@@ -35,20 +38,31 @@ async function loadFonts(): Promise<void> {
     [400, 500, 600, 700].flatMap((weight) => [
       document.fonts.load(`${weight} 40px "Noto Sans Thai"`, 'ก'),
       document.fonts.load(`${weight} 40px "Noto Sans Thai"`, 'A'),
+      document.fonts.load(
+        `${weight === 700 ? 600 : weight === 500 ? 400 : weight} 40px "Noto Sans"`,
+        'A',
+      ),
     ]),
   );
 }
 
 const render = params.get('render');
 
-if (render === 'hollow-bell-crypt') {
+/** Episodes, by id: each can be watched in the studio or rendered frame by frame. */
+const EPISODES: Record<string, () => ReturnType<typeof hollowBellCryptProject>> = {
+  'hollow-bell-crypt': hollowBellCryptProject,
+  'ta-dont-look-back': taDontLookBackProject,
+};
+const episode = EPISODES[render ?? ''] ?? EPISODES[view];
+
+if (render && EPISODES[render]) {
   await loadFonts();
-  const scene = parseProject(hollowBellCryptProject()).scenes[0];
+  const scene = parseProject(EPISODES[render]()).scenes[0];
   if (!scene) throw new Error('The episode has no scenes');
   await mountEpisodeRender(root, scene, createRenderer);
-} else if (view === 'hollow-bell-crypt') {
+} else if (episode) {
   await loadFonts();
-  const project = parseProject(hollowBellCryptProject());
+  const project = parseProject(episode());
   const scene = project.scenes[0];
   if (!scene) throw new Error('The episode has no scenes');
   if (!params.has('aspect')) params.set('aspect', '9:16');

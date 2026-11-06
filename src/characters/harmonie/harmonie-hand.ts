@@ -44,12 +44,19 @@ export interface GloveOptions {
   readonly scale?: number;
   /** A token for rim light where a beam catches the glove's edge, or none. */
   readonly palmLight?: string;
+  /** The hand's fill. Harmonie's glove by default; another character's skin when reused. */
+  readonly skin?: string;
+  /** The forearm's fill: an undersleeve, or the skin of a bare arm. */
+  readonly sleeve?: string;
+  /** The cloak edge over the forearm, or null for none. */
+  readonly cloak?: string | null;
   readonly depth?: number;
 }
 
 const id = (prefix: string, part: string) => `${prefix}-${part}`;
 
 export function gloveNodes(options: GloveOptions): NodeInput[] {
+  const SKIN = options.skin ?? 'token:deepShadow';
   const { prefix, parent, depth = 0 } = options;
   const scale = options.scale ?? 1;
   const nodes: NodeInput[] = [
@@ -88,25 +95,26 @@ export function gloveNodes(options: GloveOptions): NodeInput[] {
       [-96, 520],
       [-82, 200],
     ]),
-    'token:deepShadow',
+    options.sleeve ?? SKIN,
     0,
   );
-  shape(
-    'cloak-edge',
-    'wrist',
-    // A fold of cloak over the top of the forearm, its hem cut at an angle above the wrist.
-    outline([
-      [-8, 70, 1],
-      [92, 30, 1],
-      [118, 180],
-      [146, 520],
-      [-20, 520],
-      [-30, 300],
-    ]),
-    'token:slateBlue',
-    0.3,
-  );
-  shape('palm', 'wrist', outline(PALM), 'token:deepShadow', 0.5);
+  if (options.cloak !== null)
+    shape(
+      'cloak-edge',
+      'wrist',
+      // A fold of cloak over the top of the forearm, its hem cut at an angle above the wrist.
+      outline([
+        [-8, 70, 1],
+        [92, 30, 1],
+        [118, 180],
+        [146, 520],
+        [-20, 520],
+        [-30, 300],
+      ]),
+      options.cloak ?? 'token:slateBlue',
+      0.3,
+    );
+  shape('palm', 'wrist', outline(PALM), SKIN, 0.5);
   if (options.palmLight) {
     // Rim light: a thin edge where the beam from the upper left catches the leather.
     shape(
@@ -134,13 +142,7 @@ export function gloveNodes(options: GloveOptions): NodeInput[] {
     transform: { x: -74, y: -64, rotation: -52 },
     depth: depth + 0.6,
   });
-  shape(
-    'thumb-base',
-    'thumb',
-    limb({ x: 0, y: 0 }, { x: 0, y: -70 }, 22, 18),
-    'token:deepShadow',
-    0.6,
-  );
+  shape('thumb-base', 'thumb', limb({ x: 0, y: 0 }, { x: 0, y: -70 }, 22, 18), SKIN, 0.6);
   nodes.push({
     id: id(prefix, 'thumb-tip'),
     parent: id(prefix, 'thumb'),
@@ -148,13 +150,7 @@ export function gloveNodes(options: GloveOptions): NodeInput[] {
     transform: { y: -70, rotation: 14 },
     depth: depth + 0.6,
   });
-  shape(
-    'thumb-tip-shape',
-    'thumb-tip',
-    limb({ x: 0, y: 0 }, { x: 0, y: -52 }, 18, 14),
-    'token:deepShadow',
-    0.6,
-  );
+  shape('thumb-tip-shape', 'thumb-tip', limb({ x: 0, y: 0 }, { x: 0, y: -52 }, 18, 14), SKIN, 0.6);
 
   for (const finger of FINGERS) {
     const base = `${finger.id}`;
@@ -169,7 +165,7 @@ export function gloveNodes(options: GloveOptions): NodeInput[] {
       `${base}-1`,
       base,
       limb({ x: 0, y: 0 }, { x: 0, y: -finger.lengths[0] }, finger.radii[0], finger.radii[1]),
-      'token:deepShadow',
+      SKIN,
       0.7,
     );
     nodes.push({
@@ -183,7 +179,7 @@ export function gloveNodes(options: GloveOptions): NodeInput[] {
       `${base}-2`,
       `${base}-tip`,
       limb({ x: 0, y: 0 }, { x: 0, y: -finger.lengths[1] }, finger.radii[1], finger.radii[2]),
-      'token:deepShadow',
+      SKIN,
       0.7,
     );
   }

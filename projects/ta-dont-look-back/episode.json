@@ -1,0 +1,624 @@
+{
+  "id": "ta-dont-look-back",
+  "title": {
+    "th": "อย่าหันกลับไป",
+    "en": "DON'T LOOK BACK"
+  },
+  "character": "CHR-002",
+  "format": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 24,
+    "duration": 60,
+    "frames": 1440,
+    "characterHold": 2,
+    "video": "H.264 MP4",
+    "audio": "AAC, 48 kHz stereo"
+  },
+  "voices": {
+    "narrator": {
+      "role": "Third-person Thai narrator: quiet, restrained, close.",
+      "gemini": "Charon"
+    },
+    "presence": {
+      "role": "The voice behind Ta: calm, flat, natural, unnervingly close. No effects.",
+      "gemini": "Enceladus"
+    }
+  },
+  "choices": [
+    {
+      "id": "A",
+      "th": "หันไปมอง",
+      "en": "TURN AROUND"
+    },
+    {
+      "id": "B",
+      "th": "ทำเป็นไม่สนใจ",
+      "en": "IGNORE IT"
+    }
+  ],
+  "choicesStart": 56.4,
+  "shots": [
+    {
+      "shotId": "S01",
+      "name": "Awakening",
+      "startTime": 0,
+      "endTime": 4,
+      "type": "Medium close-up, side view",
+      "intent": "An immediate mystery without startling the viewer.",
+      "camera": {
+        "description": "Static.",
+        "keys": [
+          {
+            "time": 0,
+            "x": -1000,
+            "y": 160,
+            "zoom": 1.55
+          }
+        ]
+      },
+      "environment": "bedroom",
+      "animatedObjects": ["ta (lying, sudden wake)", "blanket", "pillow"],
+      "narration": {
+        "voice": "narrator",
+        "text": "ตีสองกว่า... ต้าลืมตาขึ้น โดยไม่รู้ว่าตื่นเพราะอะไร",
+        "start": 0.3,
+        "end": 3.85
+      },
+      "dialogue": null,
+      "subtitleTH": ["ตีสองกว่า... ต้าลืมตาขึ้น", "โดยไม่รู้ว่าตื่นเพราะอะไร"],
+      "subtitleEN": ["Past two in the morning.", "Ta wakes for no apparent reason."],
+      "soundCues": [
+        {
+          "cue": "room-tone",
+          "start": 0,
+          "end": 4.1,
+          "gain": 0.5
+        },
+        {
+          "cue": "inhale",
+          "start": 0.62,
+          "gain": 0.55
+        }
+      ]
+    },
+    {
+      "shotId": "S02",
+      "name": "The Silence",
+      "startTime": 4,
+      "endTime": 10,
+      "type": "Extreme wide, through the window",
+      "intent": "The absence of expected sounds is the horror.",
+      "camera": {
+        "description": "Almost static: a slow drift of a few pixels.",
+        "keys": [
+          {
+            "time": 0,
+            "x": -975,
+            "y": -160,
+            "zoom": 1.3,
+            "easing": "easeInOut"
+          },
+          {
+            "time": 6,
+            "x": -965,
+            "y": -165,
+            "zoom": 1.32
+          }
+        ]
+      },
+      "environment": "bedroom window and street",
+      "animatedObjects": ["curtain (barely moves)", "trees (motionless)"],
+      "narration": {
+        "voice": "narrator",
+        "text": "คืนนี้เงียบสนิท ไม่มีแม้เสียงจิ้งหรีด หรือรถที่เคยผ่านหน้าบ้าน",
+        "start": 4.3,
+        "end": 9.85
+      },
+      "dialogue": null,
+      "subtitleTH": ["คืนนี้เงียบสนิท ไม่มีแม้เสียงจิ้งหรีด", "หรือรถที่เคยผ่านหน้าบ้าน"],
+      "subtitleEN": ["No crickets. No passing cars.", "Tonight is unnaturally silent."],
+      "soundCues": [
+        {
+          "cue": "room-tone",
+          "start": 4,
+          "end": 10.1,
+          "gain": 0.35
+        }
+      ]
+    },
+    {
+      "shotId": "S03",
+      "name": "The Phone",
+      "startTime": 10,
+      "endTime": 16,
+      "type": "Close-up",
+      "intent": "The phone is simply dead: no glitch, no symbol.",
+      "camera": {
+        "description": "Slow, subtle push toward the dead screen.",
+        "keys": [
+          {
+            "time": 0,
+            "x": 0,
+            "y": 0,
+            "zoom": 1,
+            "easing": "easeInOut"
+          },
+          {
+            "time": 6,
+            "x": 40,
+            "y": -60,
+            "zoom": 1.12
+          }
+        ]
+      },
+      "environment": "bedside table insert",
+      "animatedObjects": [
+        "ta hand (reach, lift, thumb press x2)",
+        "phone (screen stays black)",
+        "charging cable"
+      ],
+      "narration": {
+        "voice": "narrator",
+        "text": "เขาหยิบมือถือขึ้นมาดูเวลา แต่หน้าจอกลับมืดสนิท",
+        "start": 10.3,
+        "end": 15.85
+      },
+      "dialogue": null,
+      "subtitleTH": ["เขาหยิบมือถือขึ้นมาดูเวลา", "แต่หน้าจอกลับมืดสนิท"],
+      "subtitleEN": ["He checks his phone,", "but the screen stays dark."],
+      "soundCues": [
+        {
+          "cue": "room-tone",
+          "start": 10,
+          "end": 16.1,
+          "gain": 0.35
+        },
+        {
+          "cue": "fabric",
+          "start": 10.3,
+          "end": 11.2,
+          "gain": 0.4
+        },
+        {
+          "cue": "button",
+          "start": 12.7,
+          "gain": 0.6
+        },
+        {
+          "cue": "button",
+          "start": 14.3,
+          "gain": 0.6
+        }
+      ]
+    },
+    {
+      "shotId": "S04",
+      "name": "A Simple Explanation",
+      "startTime": 16,
+      "endTime": 21,
+      "type": "Medium shot",
+      "intent": "An ordinary explanation makes the next event worse.",
+      "camera": {
+        "description": "Static, a slight settle.",
+        "keys": [
+          {
+            "time": 0,
+            "x": -1010,
+            "y": 120,
+            "zoom": 1.32,
+            "easing": "easeOut"
+          },
+          {
+            "time": 5,
+            "x": -1010,
+            "y": 120,
+            "zoom": 1.3
+          }
+        ]
+      },
+      "environment": "bedroom",
+      "animatedObjects": [
+        "ta (sitting, looks at cable, scratches head, shoulders relax, puts phone down)",
+        "charging cable"
+      ],
+      "narration": {
+        "voice": "narrator",
+        "text": "คงเป็นสายชาร์จเก่าอีกแล้ว... เขาคิด",
+        "start": 16.3,
+        "end": 20.85
+      },
+      "dialogue": null,
+      "subtitleTH": ["คงเป็นสายชาร์จเก่าอีกแล้ว... เขาคิด"],
+      "subtitleEN": ["That old charging cable again, he thinks."],
+      "soundCues": [
+        {
+          "cue": "room-tone",
+          "start": 16,
+          "end": 21.1,
+          "gain": 0.35
+        },
+        {
+          "cue": "cable",
+          "start": 16.6,
+          "end": 17.2,
+          "gain": 0.4
+        },
+        {
+          "cue": "bedding",
+          "start": 18.0,
+          "end": 18.8,
+          "gain": 0.35
+        },
+        {
+          "cue": "scratch",
+          "start": 18.4,
+          "end": 19.4,
+          "gain": 0.3
+        }
+      ]
+    },
+    {
+      "shotId": "S05",
+      "name": "Getting Up",
+      "startTime": 21,
+      "endTime": 27,
+      "type": "Full shot",
+      "intent": "Natural, unhurried: he suspects nothing yet.",
+      "camera": {
+        "description": "Gently follows him from the bed toward the door.",
+        "keys": [
+          {
+            "time": 0,
+            "x": -480,
+            "y": 240,
+            "zoom": 1.0,
+            "easing": "easeInOut"
+          },
+          {
+            "time": 6,
+            "x": 330,
+            "y": 240,
+            "zoom": 1.0
+          }
+        ]
+      },
+      "environment": "bedroom",
+      "animatedObjects": ["ta (edge of bed, feet down, rises, stretches, walks right)", "mattress"],
+      "narration": {
+        "voice": "narrator",
+        "text": "เขาจึงลุกจากเตียง กะจะไปดื่มน้ำสักหน่อย",
+        "start": 21.3,
+        "end": 26.85
+      },
+      "dialogue": null,
+      "subtitleTH": ["เขาจึงลุกจากเตียง", "กะจะไปดื่มน้ำสักหน่อย"],
+      "subtitleEN": ["He gets up, thinking he might", "as well get some water."],
+      "soundCues": [
+        {
+          "cue": "room-tone",
+          "start": 21,
+          "end": 27.1,
+          "gain": 0.35
+        },
+        {
+          "cue": "mattress",
+          "start": 21.4,
+          "end": 22.2,
+          "gain": 0.5
+        },
+        {
+          "cue": "feet-down",
+          "start": 22.1,
+          "gain": 0.5
+        },
+        {
+          "cue": "clothes",
+          "start": 23.0,
+          "end": 24.0,
+          "gain": 0.3
+        },
+        {
+          "cue": "footsteps",
+          "start": 24.0,
+          "gain": 0.45,
+          "count": 6,
+          "interval": 0.5
+        }
+      ]
+    },
+    {
+      "shotId": "S06",
+      "name": "The Door",
+      "startTime": 27,
+      "endTime": 33,
+      "type": "Medium shot from behind",
+      "intent": "Hold the composition. The shadow is not shown yet.",
+      "camera": {
+        "description": "Slow push toward his hand.",
+        "keys": [
+          {
+            "time": 0,
+            "x": 760,
+            "y": -20,
+            "zoom": 1.3,
+            "easing": "easeInOut"
+          },
+          {
+            "time": 6,
+            "x": 720,
+            "y": 20,
+            "zoom": 1.55
+          }
+        ]
+      },
+      "environment": "bedroom door",
+      "animatedObjects": [
+        "ta (back view, last steps, hand rises toward the handle)",
+        "door handle (foreground)"
+      ],
+      "narration": {
+        "voice": "narrator",
+        "text": "แต่ก่อนมือจะทันแตะลูกบิด...",
+        "start": 27.3,
+        "end": 32.85
+      },
+      "dialogue": null,
+      "subtitleTH": ["แต่ก่อนมือจะทันแตะลูกบิด..."],
+      "subtitleEN": ["But before his hand reaches the door..."],
+      "soundCues": [
+        {
+          "cue": "footsteps",
+          "start": 27.15,
+          "gain": 0.4,
+          "count": 2,
+          "interval": 0.55
+        },
+        {
+          "cue": "room-tone",
+          "start": 27,
+          "end": 33.1,
+          "gain": 0.2
+        }
+      ]
+    },
+    {
+      "shotId": "S07",
+      "name": "The Shadow",
+      "startTime": 33,
+      "endTime": 38,
+      "type": "Static medium wide",
+      "intent": "The most unsettling image so far, revealed slowly.",
+      "camera": {
+        "description": "Locked off.",
+        "keys": [
+          {
+            "time": 0,
+            "x": 470,
+            "y": -40,
+            "zoom": 1
+          }
+        ]
+      },
+      "environment": "bedroom wall and door",
+      "animatedObjects": [
+        "shadow (enters across floor and wall, morphs, stops at 37.4 s)",
+        "ta (hand near handle, still)"
+      ],
+      "narration": null,
+      "dialogue": null,
+      "subtitleTH": [],
+      "subtitleEN": [],
+      "soundCues": [
+        {
+          "cue": "room-tone",
+          "start": 33,
+          "end": 38.1,
+          "gain": 0.2
+        },
+        {
+          "cue": "low-tone",
+          "start": 34.2,
+          "end": 38.0,
+          "gain": 0.35
+        }
+      ]
+    },
+    {
+      "shotId": "S08",
+      "name": "The Warning",
+      "startTime": 38,
+      "endTime": 43,
+      "type": "Static, from behind Ta",
+      "intent": "An almost ordinary voice. Its calm is what disturbs.",
+      "camera": {
+        "description": "Static.",
+        "keys": [
+          {
+            "time": 0,
+            "x": 610,
+            "y": -30,
+            "zoom": 1.42
+          }
+        ]
+      },
+      "environment": "bedroom door and wall",
+      "animatedObjects": ["ta (freezes)", "shadow (still)"],
+      "narration": null,
+      "dialogue": {
+        "voice": "presence",
+        "text": "อย่าออกไปจากห้องนี้",
+        "start": 39.0,
+        "end": 42.6
+      },
+      "subtitleTH": ["“อย่าออกไปจากห้องนี้”"],
+      "subtitleEN": ["“Don't leave this room.”"],
+      "soundCues": [
+        {
+          "cue": "room-tone",
+          "start": 38,
+          "end": 43.1,
+          "gain": 0.15
+        },
+        {
+          "cue": "low-tone",
+          "start": 38.0,
+          "end": 38.9,
+          "gain": 0.3
+        }
+      ]
+    },
+    {
+      "shotId": "S09",
+      "name": "The Impossible Presence",
+      "startTime": 43,
+      "endTime": 49,
+      "type": "Close-up on shoulder and neck",
+      "intent": "Is the voice a threat or a warning? No answer.",
+      "camera": {
+        "description": "Extremely slow push-in.",
+        "keys": [
+          {
+            "time": 0,
+            "x": 0,
+            "y": 0,
+            "zoom": 1,
+            "easing": "linear"
+          },
+          {
+            "time": 6,
+            "x": 0,
+            "y": -25,
+            "zoom": 1.06
+          }
+        ]
+      },
+      "environment": "shoulder close-up insert",
+      "animatedObjects": [
+        "ta (shoulders tighten, shallow breathing, head never turns)",
+        "shadow edge"
+      ],
+      "narration": {
+        "voice": "narrator",
+        "text": "เสียงเรียบ ๆ ดังจากด้านหลัง... ทั้งที่เขาน่าจะอยู่คนเดียว",
+        "start": 43.3,
+        "end": 48.85
+      },
+      "dialogue": null,
+      "subtitleTH": ["เสียงเรียบ ๆ ดังจากด้านหลัง...", "ทั้งที่เขาน่าจะอยู่คนเดียว"],
+      "subtitleEN": ["A calm voice comes from behind him.", "He should be alone."],
+      "soundCues": [
+        {
+          "cue": "room-tone",
+          "start": 43,
+          "end": 49.1,
+          "gain": 0.2
+        },
+        {
+          "cue": "breath-shallow",
+          "start": 43.4,
+          "end": 48.9,
+          "gain": 0.45
+        }
+      ]
+    },
+    {
+      "shotId": "S10",
+      "name": "Paralysis",
+      "startTime": 49,
+      "endTime": 54,
+      "type": "Extreme close-up",
+      "intent": "Only hesitation.",
+      "camera": {
+        "description": "Static.",
+        "keys": [
+          {
+            "time": 0,
+            "x": 0,
+            "y": 0,
+            "zoom": 1
+          }
+        ]
+      },
+      "environment": "door handle insert",
+      "animatedObjects": [
+        "ta hand (trembles, hovers just short of the handle)",
+        "handle (still)",
+        "shadow (soft, behind the arm)"
+      ],
+      "narration": {
+        "voice": "narrator",
+        "text": "ต้าตัวแข็ง... มือสั่นค้างอยู่หน้าประตู",
+        "start": 49.3,
+        "end": 53.85
+      },
+      "dialogue": null,
+      "subtitleTH": ["ต้าตัวแข็ง... มือสั่นค้างอยู่หน้าประตู"],
+      "subtitleEN": ["Ta freezes, his trembling hand suspended by the door."],
+      "soundCues": [
+        {
+          "cue": "room-tone",
+          "start": 49,
+          "end": 54.1,
+          "gain": 0.2
+        },
+        {
+          "cue": "breath-controlled",
+          "start": 49.2,
+          "end": 53.9,
+          "gain": 0.4
+        },
+        {
+          "cue": "pulse",
+          "start": 50.0,
+          "end": 53.9,
+          "gain": 0.3
+        }
+      ]
+    },
+    {
+      "shotId": "S11",
+      "name": "The Decision",
+      "startTime": 54,
+      "endTime": 60,
+      "type": "Medium wide",
+      "intent": "Unresolved. The viewer must choose.",
+      "camera": {
+        "description": "Held. The light slowly drops.",
+        "keys": [
+          {
+            "time": 0,
+            "x": 470,
+            "y": -40,
+            "zoom": 1
+          }
+        ]
+      },
+      "environment": "bedroom wall and door",
+      "animatedObjects": ["ta (motionless)", "shadow (fills the wall)", "light (dims)"],
+      "narration": {
+        "voice": "narrator",
+        "text": "แล้วต้า... ควรหันไปมอง หรือทำเป็นไม่สนใจ?",
+        "start": 54.3,
+        "end": 58.2
+      },
+      "dialogue": null,
+      "subtitleTH": ["แล้วต้า... ควรหันไปมอง", "หรือทำเป็นไม่สนใจ?"],
+      "subtitleEN": ["Should Ta turn around...", "or pretend nothing happened?"],
+      "soundCues": [
+        {
+          "cue": "room-tone",
+          "start": 54,
+          "end": 60,
+          "gain": 0.2
+        },
+        {
+          "cue": "pulse",
+          "start": 54.0,
+          "end": 58.0,
+          "gain": 0.2
+        }
+      ]
+    }
+  ]
+}

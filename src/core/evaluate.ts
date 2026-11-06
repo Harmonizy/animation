@@ -12,6 +12,7 @@ import type {
   Shot,
   Transform,
 } from './schema';
+import { interpolatePaths } from './svgPath';
 import {
   firstFrameAtOrAfter,
   frameToTime,
@@ -281,6 +282,15 @@ export function evaluateFrame(
     transform[track.property] = evaluateKeyframes(track.keyframes, time);
   }
 
+  // Shape tracks morph paths between keyed outlines.
+  const morphs = new Map<string, string>();
+  for (const track of scene.shapeTracks) {
+    const hold = resolveHold(scene, track.group, overrides, track.hold);
+    const time = frameToTime(poseFrame(frame, hold), fps);
+    const { from, to, amount } = segmentAt(track.keyframes, time);
+    morphs.set(track.target, interpolatePaths(from.d, to.d, amount));
+  }
+
   const shot = shotAtFrame(scene, frame, fps);
   const camera = evaluateCamera(scene, shot, frame, fps, overrides);
 
@@ -303,6 +313,11 @@ export function evaluateFrame(
   for (const siblings of childrenOf.values()) {
     siblings.sort((a, b) => planeOrder(a) - planeOrder(b) || layerOf(a) - layerOf(b));
   }
+
+  const shapeAt = (node: SceneNode): Shape => {
+    const d = morphs.get(node.id);
+    return d !== undefined && node.shape.kind === 'path' ? { ...node.shape, d } : node.shape;
+  };
 
   const nodes: EvaluatedNode[] = [];
   const visit = (
@@ -335,7 +350,7 @@ export function evaluateFrame(
           : undefined;
       nodes.push({
         id: node.id,
-        shape: node.shape,
+        shape: shapeAt(node),
         fill,
         ...(gradient ? { gradient } : {}),
         layer: layerOf(node),

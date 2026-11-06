@@ -19,7 +19,22 @@ const Key = z.strictObject({
 });
 const Line = z.strictObject({
   voice: z.enum(['narrator', 'presence']),
+  /** The words as spoken, for the scripts. */
   text: z.string().min(1),
+  /**
+   * What the voice model is given, when it differs from `text`: parts generated separately (with
+   * ElevenLabs v3 tags such as [quietly]), joined with `pause` seconds of silence, each at `gain`.
+   */
+  performance: z
+    .array(
+      z.strictObject({
+        text: z.string().min(1),
+        pause: z.number().min(0).optional(),
+        gain: z.number().positive().optional(),
+      }),
+    )
+    .min(1)
+    .optional(),
   start: T,
   end: T,
 });
@@ -64,7 +79,17 @@ export const TaEpisodeSchema = z
       video: z.string(),
       audio: z.string(),
     }),
-    voices: z.record(z.string(), z.strictObject({ role: z.string(), gemini: z.string() })),
+    voices: z.record(
+      z.string(),
+      z.strictObject({
+        role: z.string(),
+        elevenlabs: z.strictObject({
+          name: z.string(),
+          voiceId: z.string().min(1),
+          stability: z.number().min(0).max(1),
+        }),
+      }),
+    ),
     choices: z.array(z.strictObject({ id: z.string(), th: z.string(), en: z.string() })).length(2),
     choicesStart: T,
     shots: z.array(Shot).length(11),

@@ -2,14 +2,18 @@
   "language": "th-TH",
   "voice": {
     "role": "Third-person Thai narrator: quiet, restrained, close.",
-    "gemini": "Charon"
+    "elevenlabs": {
+      "name": "Brian",
+      "voiceId": "nPczCjzI2devNBz1zQrb",
+      "stability": 0.5
+    }
   },
   "lines": [
     {
       "shot": "S01",
       "text": "ตีสองกว่า... ต้าลืมตาขึ้น โดยไม่รู้ว่าตื่นเพราะอะไร",
-      "start": 0.3,
-      "end": 3.85
+      "start": 0.15,
+      "end": 3.95
     },
     {
       "shot": "S02",

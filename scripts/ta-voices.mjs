@@ -1,15 +1,20 @@
 /* global console, process, Buffer, setTimeout */
-// Generates DON'T LOOK BACK's two voices with Gemini TTS, and measures them for the subtitles.
+// Generates DON'T LOOK BACK's two voices with ElevenLabs (eleven_v3), and measures them for the
+// subtitles.
 //
-//   GEMINI_API_KEY=... npm run voices:ta            every line that does not exist yet
-//   GEMINI_API_KEY=... npm run voices:ta -- --force --only=S08
+//   npm run voices:ta                               every line that does not exist yet
+//   npm run voices:ta -- --force --only=S08
 //   npm run voices:ta -- --dry-run                  print the requests only
 //
-// Two voices, from episode.json: the narrator, and the presence behind Ta, which speaks one line.
-// Each line is trimmed of silence, converted to 48 kHz, and fitted to its window (sped up by at
-// most 12%). Lines that run far past their text are requested again. The measured start and length
-// of every line are written to projects/ta-dont-look-back/timing.json, so the subtitles follow the
-// speech. Run npm run build:ta afterwards to regenerate the SRT and VTT files.
+// The key: in a cloud session, the network proxy adds it to requests to api.elevenlabs.io. On your
+// own machine, set ELEVENLABS_API_KEY. Never commit it.
+//
+// Two voices, from episode.json: the narrator, and the presence behind Ta. A line with a
+// `performance` is generated in parts (so a single word, such as Ta's name, can be given its own
+// weight) and joined with silence. Each line is trimmed, converted to 48 kHz and fitted to its
+// window (sped up by at most 12%). The measured start and length of every line go to
+// projects/ta-dont-look-back/timing.json, so the subtitles follow the speech. Run npm run build:ta
+// afterwards to regenerate the SRT and VTT files.
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -18,7 +23,8 @@ import { finishLine, MAX_SPEED_UP, seconds } from './narration-audio.mjs';
 const EPISODE = 'projects/ta-dont-look-back/episode.json';
 const TIMING = 'projects/ta-dont-look-back/timing.json';
 const OUT = 'artifacts/ta-dont-look-back/voice';
-const MODEL = process.env.GEMINI_TTS_MODEL ?? 'gemini-3.8-flash-tts';
+const MODEL = process.env.ELEVENLABS_MODEL ?? 'eleven_v3';
+const RATE = 24000;
 
 const dryRun = process.argv.includes('--dry-run');
 const force = process.argv.includes('--force');
@@ -26,25 +32,10 @@ const only = process.argv
   .find((a) => a.startsWith('--only='))
   ?.slice(7)
   .split(',');
-const key = process.env.GEMINI_API_KEY;
-if (!dryRun && !key) {
-  console.error('GEMINI_API_KEY is not set.');
-  process.exit(1);
-}
+// In a cloud session the proxy replaces this header with the saved key.
+const key = process.env.ELEVENLABS_API_KEY ?? 'proxy-injected';
 
 const episode = JSON.parse(readFileSync(EPISODE, 'utf8'));
-
-/**
- * How each voice is directed, in the short "Say ...:" form. Longer role-play directions ("You are
- * the narrator of a film") made the model invent and speak its own English sentence instead of
- * reading the line, so the direction stays one sentence and the line is quoted.
- */
-const DIRECTION = {
-  narrator:
-    'Say in Thai, in a low, calm, restrained and close voice, pausing briefly at each "...":',
-  presence:
-    'Say in Thai, in a calm, flat, quiet and completely ordinary voice, very close, with no emotion:',
-};
 
 const lines = episode.shots.flatMap((shot) => {
   const line = shot.narration ?? shot.dialogue;
@@ -53,16 +44,20 @@ const lines = episode.shots.flatMap((shot) => {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function speak(line) {
+function ffmpeg(args) {
+  const result = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', ...args], { encoding: 'utf8' });
+  if (result.status !== 0) throw new Error(result.stderr);
+}
+
+/** One request: returns raw 16-bit mono PCM at RATE. */
+async function speak(text, voice) {
   const body = {
-    contents: [{ parts: [{ text: `${DIRECTION[line.voice]} "${line.text}"` }] }],
-    generationConfig: {
-      responseModalities: ['AUDIO'],
-      speechConfig: {
-        voiceConfig: { prebuiltVoiceConfig: { voiceName: episode.voices[line.voice].gemini } },
-      },
-    },
+    text,
+    model_id: MODEL,
+    language_code: 'th',
+    voice_settings: { stability: voice.stability },
   };
+  const url = `https://api.elevenlabs.io/v1/text-to-speech/${voice.voiceId}?output_format=pcm_${RATE}`;
   for (let attempt = 1; ; attempt++) {
     const result = spawnSync(
       'curl',
@@ -72,41 +67,72 @@ async function speak(line) {
         '\n%{http_code}',
         '-X',
         'POST',
-        `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
+        url,
         '-H',
         'Content-Type: application/json',
         '-H',
-        `x-goog-api-key: ${key}`,
+        `xi-api-key: ${key}`,
         '--data-binary',
         '@-',
       ],
-      { input: JSON.stringify(body), encoding: 'utf8', maxBuffer: 128 * 1024 * 1024 },
+      { input: Buffer.from(JSON.stringify(body)), maxBuffer: 128 * 1024 * 1024 },
     );
-    const cut = result.stdout.lastIndexOf('\n');
-    const status = Number(result.stdout.slice(cut + 1));
-    const text = result.stdout.slice(0, cut);
-    if (status === 200) {
-      const part = JSON.parse(text).candidates?.[0]?.content?.parts?.find((p) => p.inlineData);
-      if (!part) throw new Error(`${line.shot}: no audio in the response`);
-      return part.inlineData;
-    }
+    const out = result.stdout;
+    const cut = out.lastIndexOf(0x0a);
+    const status = Number(out.subarray(cut + 1).toString());
+    const data = out.subarray(0, cut);
+    if (status === 200) return Buffer.from(data);
     if ((status === 429 || status >= 500) && attempt < 6) {
-      console.log(`  busy (${status}), retrying in ${20 * attempt} s`);
-      await sleep(20_000 * attempt);
+      console.log(`  busy (${status}), retrying in ${10 * attempt} s`);
+      await sleep(10_000 * attempt);
       continue;
     }
-    throw new Error(`${line.shot}: HTTP ${status}: ${text.slice(0, 400)}`);
+    throw new Error(`HTTP ${status}: ${data.toString().slice(0, 400)}`);
   }
+}
+
+/** Generates a line, part by part, into one 48 kHz WAV (not yet fitted). */
+async function perform(line, file) {
+  const voice = episode.voices[line.voice].elevenlabs;
+  const parts = line.performance ?? [{ text: line.text }];
+  const inputs = [];
+  const chain = [];
+  for (const [i, part] of parts.entries()) {
+    const raw = `${file}.${i}.raw`;
+    const wav = `${file}.${i}.wav`;
+    writeFileSync(raw, await speak(part.text, voice));
+    finishLine(raw, RATE, wav, Infinity);
+    rmSync(raw);
+    inputs.push('-i', wav);
+    const label = `p${i}`;
+    let filter = `[${i}:a]volume=${part.gain ?? 1}`;
+    if (part.pause) filter += `,apad=pad_dur=${part.pause}`;
+    chain.push(`${filter}[${label}]`);
+  }
+  const join_ = parts.map((_, i) => `[p${i}]`).join('');
+  ffmpeg([
+    ...inputs,
+    '-filter_complex',
+    `${chain.join(';')};${join_}concat=n=${parts.length}:v=0:a=1[out]`,
+    '-map',
+    '[out]',
+    '-ar',
+    '48000',
+    '-ac',
+    '1',
+    file,
+  ]);
+  parts.forEach((_, i) => rmSync(`${file}.${i}.wav`));
 }
 
 mkdirSync(OUT, { recursive: true });
 let failed = 0;
 for (const line of lines) {
   if (only && !only.includes(line.shot)) continue;
+  const voice = episode.voices[line.voice].elevenlabs;
   if (dryRun) {
-    console.log(
-      `${line.shot} [${line.voice} / ${episode.voices[line.voice].gemini}]: ${line.text}`,
-    );
+    const parts = (line.performance ?? [{ text: line.text }]).map((p) => p.text).join(' | ');
+    console.log(`${line.shot} [${line.voice} / ${voice.name}]: ${parts}`);
     continue;
   }
   const file = join(OUT, `${line.shot}.wav`);
@@ -116,23 +142,17 @@ for (const line of lines) {
   }
   let length = Infinity;
   for (let attempt = 1; attempt <= 3; attempt++) {
-    const audio = await speak(line);
-    const raw = join(OUT, `${line.shot}.raw`);
-    writeFileSync(raw, Buffer.from(audio.data, 'base64'));
-    const format = (audio.mimeType ?? '').includes('wav')
-      ? 'wav'
-      : Number(/rate=(\d+)/.exec(audio.mimeType ?? '')?.[1] ?? 24000);
-    length = finishLine(raw, format, file, line.window);
-    rmSync(raw);
+    const joined = `${file}.joined.wav`;
+    await perform(line, joined);
+    length = finishLine(joined, 'wav', file, line.window);
+    rmSync(joined);
     if (length <= line.window * 1.5) break;
     console.log(`  ${line.shot}: ${length.toFixed(1)} s is far too long, asking again`);
-    await sleep(7000);
   }
   if (length > line.window) failed++;
   console.log(
     `${file}: ${length.toFixed(2)} s of ${line.window.toFixed(2)} s${length > line.window ? '  TOO LONG' : ''}`,
   );
-  await sleep(7000);
 }
 
 if (!dryRun) {

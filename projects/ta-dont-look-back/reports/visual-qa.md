@@ -45,7 +45,7 @@ The cut to black falls on frame 1440, exactly 60.00 s.
 
 ## Open issues
 
-- **No voices yet**, so the film's words exist only as subtitles. The subtitles use planned windows.
+- The voices have not been heard by a person. See the [pronunciation check](production-status.md#pronunciation-check).
 - The reach hand at S07–S11 is small and low in contrast against the door. It reads as a hand held
   short of the lever in stills; judge it at speed.
 - Nobody has watched the film at speed with sound.

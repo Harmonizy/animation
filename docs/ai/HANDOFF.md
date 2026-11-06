@@ -97,9 +97,9 @@ Start with `src/main.ts`, then:
 ## Waiting on the owner
 
 1. A Gemini API key as `GEMINI_API_KEY` (or a Google Cloud TTS key), for the episode's narration,
-   and a TTS quota for DON'T LOOK BACK's 10 lines (`npm run voices:ta`), or recorded voices.
-2. Watching the episode at speed with sound, and review of Harmonie's sheet and the labs.
-3. Reading the GSAP license if the studio may be distributed as a tool.
+2. Listening to DON'T LOOK BACK's voices, and naming any lines to regenerate.
+3. Watching the episode at speed with sound, and review of Harmonie's sheet and the labs.
+4. Reading the GSAP license if the studio may be distributed as a tool.
 
 ## Suggested next steps
 

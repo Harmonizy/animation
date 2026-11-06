@@ -133,6 +133,35 @@ def cue(name, start, end, seed, count=1, interval=0.0):
     raise ValueError(f'Unknown cue {name}')
 
 
+def lower(data, ratio):
+    """The same signal, pitched down by `ratio` and kept the same length (resample, then time-stretch)."""
+    import subprocess
+    raw = (np.clip(data, -1, 1) * 32767).astype(np.int16).tobytes()
+    rate = int(RATE * ratio)
+    out = subprocess.run(
+        ['ffmpeg', '-loglevel', 'error', '-f', 's16le', '-ar', str(rate), '-ac', '1', '-i', '-',
+         '-af', f'aresample={RATE},atempo={1 / ratio:.5f}', '-f', 's16le', '-ac', '1', '-'],
+        input=raw, capture_output=True, check=True).stdout
+    low_ = np.frombuffer(out, dtype=np.int16).astype(float) / 32768
+    return np.pad(low_, (0, max(0, len(data) - len(low_))))[: len(data)]
+
+
+def mix_presence(mix, data, at):
+    """
+    The voice behind Ta: dry and close, with a lower double of itself a few milliseconds late, just
+    under it, and a breath of air that follows its loudness. It should sound like a voice and not
+    quite like a person.
+    """
+    double = lower(data, 0.78) * 0.5
+    double = np.concatenate([np.zeros(int(0.012 * RATE)), double])[: len(data)]
+    loud = low(np.abs(data), 30)
+    air = band(len(data) / RATE, 2500, 9000, 77)[: len(data)] * loud * 0.6
+    voice = data + double + air
+    # Very slightly wider than the narrator: it is behind him, not in the speaker.
+    mix[0, at:at + len(data)] += voice * 1.05
+    mix[1, at:at + len(data)] += np.concatenate([np.zeros(24), voice])[: len(data)] * 1.0
+
+
 def place(track, signal, start, pan, gain):
     dsp.place(track, signal, start, pan, gain)
 
@@ -168,9 +197,10 @@ def main():
                 data = data.reshape(-1, 2).mean(axis=1)
         at = int(line['start'] * RATE)
         data = data[: N - at]
-        # The presence is close and dry, a little louder than the narrator.
-        level = 1.0 if line['voice'] == 'presence' else 0.8
-        mix[:, at:at + len(data)] += data * level
+        if line['voice'] == 'presence':
+            mix_presence(mix, data, at)
+        else:
+            mix[:, at:at + len(data)] += data * 0.8
         voices += 1
 
     peak = np.max(np.abs(mix))

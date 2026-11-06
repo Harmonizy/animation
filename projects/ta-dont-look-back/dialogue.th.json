@@ -1,15 +1,19 @@
 {
   "language": "th-TH",
   "voice": {
-    "role": "The voice behind Ta: calm, flat, natural, unnervingly close. No effects.",
-    "gemini": "Enceladus"
+    "role": "The voice behind Ta: quiet, husky, unnervingly close. It says his name first. A lower double of itself sits under it.",
+    "elevenlabs": {
+      "name": "Callum",
+      "voiceId": "N2lVS1w4EtoT3dr4eOWO",
+      "stability": 1
+    }
   },
   "lines": [
     {
       "shot": "S08",
-      "text": "อย่าออกไปจากห้องนี้",
+      "text": "ต้า... อย่าออกไปจากห้องนี้",
       "start": 39,
-      "end": 42.6
+      "end": 42.8
     }
   ]
 }

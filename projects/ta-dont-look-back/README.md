@@ -2,7 +2,7 @@
 
 A 60-second vertical psychological horror short (1080 x 1920, 24 fps, 1440 frames). Ta wakes at two
 in the morning to a silence that should not be there, walks to his bedroom door, and a calm voice
-behind him says "อย่าออกไปจากห้องนี้". The film ends on his choice, unmade: turn around, or ignore it.
+behind him says "ต้า... อย่าออกไปจากห้องนี้". The film ends on his choice, unmade: turn around, or ignore it.
 
 ## Files
 
@@ -21,7 +21,7 @@ Art and animation are code: Ta in `src/characters/ta/`, the film in
 ## Make the film
 
 ```bash
-npm run voices:ta     # Gemini TTS, two voices; needs GEMINI_API_KEY; writes timing.json
+npm run voices:ta     # ElevenLabs TTS, two voices; writes timing.json
 npm run build:ta      # subtitles and scripts from episode.json + timing.json
 npm run audio:ta      # sound design, mixing in the voices that exist
 npm run render:episode -- --episode=ta-dont-look-back   # 1440 frames -> artifacts/ta-dont-look-back/ta-dont-look-back.mp4
@@ -32,10 +32,19 @@ Studio preview, frame by frame: `?view=ta-dont-look-back`.
 
 ## Voices
 
-`voices:ta` uses `gemini-3.8-flash-tts` with the narrator voice `Charon` and the presence voice
-`Enceladus` (both set in `episode.json`). Keep the direction short: a long role-play direction made
-the model invent and speak its own English sentence. Each line is trimmed, fitted to its window and
-measured, and the measured timing drives the subtitles. Listen before publishing.
+`voices:ta` uses ElevenLabs `eleven_v3`: the narrator is `Brian`, the presence is `Callum` (both set
+in `episode.json`). In a cloud session the network proxy adds the key to requests to
+`api.elevenlabs.io`; on your own machine set `ELEVENLABS_API_KEY`. Never commit a key.
+
+A line may carry a `performance`: the parts sent to the model, joined with a pause. The presence's
+line is two parts, so Ta's name stands alone and a little louder before the sentence. S01 is split
+too, because the model's own pause at "..." made the line too long for its window.
+
+Each line is trimmed, fitted to its window and measured, and the measured timing drives the
+subtitles. `audio:ta` gives the presence a lower double of itself, a few milliseconds late, and a
+breath of air that follows its loudness. Listen before publishing: the voices are English voices
+speaking Thai, and a transcription check heard some words differently (see the
+[status](reports/production-status.md)).
 
 To record the voices yourself instead, save `S01.wav` ... `S11.wav` (48 kHz) for the spoken shots in
 `artifacts/ta-dont-look-back/voice/`, set each line's start in `timing.json` to where it begins and

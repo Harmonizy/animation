@@ -121,7 +121,7 @@ describe("DON'T LOOK BACK", () => {
     const s7 = TA_EPISODE.shots[6];
     expect(s7?.narration).toBeNull();
     expect(s7?.subtitleTH).toEqual([]);
-    expect(TA_EPISODE.shots[7]?.dialogue?.text).toBe('อย่าออกไปจากห้องนี้');
+    expect(TA_EPISODE.shots[7]?.dialogue?.text).toBe('ต้า... อย่าออกไปจากห้องนี้');
     expect(TA_EPISODE.shots[7]?.dialogue?.voice).toBe('presence');
   });
 

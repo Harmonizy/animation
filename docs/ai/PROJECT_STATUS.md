@@ -12,20 +12,20 @@ vertical short rendered to MP4. See [Harmonie](../creative/harmonie.md) and
 
 ## Overall plan
 
-| Work                                   | State                                                      |
-| -------------------------------------- | ---------------------------------------------------------- |
-| Phase 0: architecture and planning     | Done                                                       |
-| Phase 1: minimal working studio        | Done, verified locally                                     |
-| Visual QA review of the demo           | Done, see [visual QA](../production/visual-qa.md)          |
-| Timing engine and Timing Lab (Phase 2) | Done, verified locally                                     |
-| Visual QA review of the Lab            | Done, with one open issue                                  |
-| Cinematic Minimalist Silhouette        | Approved. Foundation and three labs done, verified locally |
-| Visual QA review of the style labs     | Done, with open issues                                     |
-| Harmonie (CHR-001) design and rig      | Done, verified in Chromium. Not yet watched by a person    |
-| Episode: The Hollow Bell Crypt         | Video done without narration. Voice needs an API key       |
-| Ta (CHR-002) rig, side and back views  | Done, verified in Chromium                                 |
-| Film: DON'T LOOK BACK                  | Video done with sound effects. Voices not yet generated    |
-| Other Phase 2 work and later phases    | Not authorized                                             |
+| Work                                   | State                                                        |
+| -------------------------------------- | ------------------------------------------------------------ |
+| Phase 0: architecture and planning     | Done                                                         |
+| Phase 1: minimal working studio        | Done, verified locally                                       |
+| Visual QA review of the demo           | Done, see [visual QA](../production/visual-qa.md)            |
+| Timing engine and Timing Lab (Phase 2) | Done, verified locally                                       |
+| Visual QA review of the Lab            | Done, with one open issue                                    |
+| Cinematic Minimalist Silhouette        | Approved. Foundation and three labs done, verified locally   |
+| Visual QA review of the style labs     | Done, with open issues                                       |
+| Harmonie (CHR-001) design and rig      | Done, verified in Chromium. Not yet watched by a person      |
+| Episode: The Hollow Bell Crypt         | Video done without narration. Voice needs an API key         |
+| Ta (CHR-002) rig, side and back views  | Done, verified in Chromium                                   |
+| Film: DON'T LOOK BACK                  | Video done with ElevenLabs voices. Not yet heard by a person |
+| Other Phase 2 work and later phases    | Not authorized                                               |
 
 ## Implemented
 
@@ -55,7 +55,7 @@ vertical short rendered to MP4. See [Harmonie](../creative/harmonie.md) and
 - A `latin` text font (Noto Sans) next to Noto Sans Thai.
 - Shared episode code in `src/episodes/shared/`, and `render:episode -- --episode=<id>`.
 - DON'T LOOK BACK: 11 shots, Ta (CHR-002), one bedroom, a morphing shadow, bilingual subtitles,
-  SRT/VTT, equal choices, synthesised sound, and a Gemini TTS script for two voices (`voices:ta`).
+  SRT/VTT, equal choices, synthesised sound, and ElevenLabs voices (`voices:ta`).
 
 ## Verification
 
@@ -93,7 +93,7 @@ clean `npm ci`. Earlier phases were also verified on Windows 11, Node 24.14.1.
 - Technical demos only. They are not artwork, and make no claim of visual fidelity.
 - The episode has no narration until a Gemini (or Google Cloud TTS) key is provided, and nobody has
   watched it at speed with sound. See [its status](../../projects/harmonie/hollow-bell-crypt/reports/production-status.md).
-- DON'T LOOK BACK has no voices yet (Gemini free-tier quota), so its subtitles use planned windows.
+- DON'T LOOK BACK's voices are English ElevenLabs voices speaking Thai, not yet heard by a person.
   See [its status](../../projects/ta-dont-look-back/reports/production-status.md).
 - Harmonie: only the side view is animated, the walk is in place, cloth moves as rigid pieces, and no
   person has watched the motion. See [her open issues](../creative/harmonie.md#visual-qa-version-1).

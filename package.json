@@ -24,7 +24,10 @@
     "render:episode": "node scripts/render-episode.mjs",
     "audio:episode": "python3 scripts/episode-audio.py",
     "narration:episode": "node scripts/episode-narration.mjs",
-    "narration:check": "node scripts/narration-check.mjs"
+    "narration:check": "node scripts/narration-check.mjs",
+    "voices:ta": "node scripts/ta-voices.mjs",
+    "build:ta": "node scripts/build-ta.mjs",
+    "audio:ta": "python3 scripts/ta-audio.py"
   },
   "dependencies": {
     "@fontsource/noto-sans": "^5.2.10",

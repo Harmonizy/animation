@@ -749,25 +749,37 @@ function s05(b: Build): void {
  * The door: S06 to S08 and S11 share Ta's back-view figure, frozen with his hand near the handle.
  * ---------------------------------------------------------------------------------------------- */
 
-/** Just above the lever's tip, never on it. */
-const HAND_TARGET = { x: 716, y: -4 };
+/**
+ * Where his wrist stops: just inside the edge of his body, at the height of the handle, so the
+ * hand shows beside him with its fingers pointing at the lever and stopping short of it.
+ */
+const WRIST_TARGET = { x: 790, y: 64 };
 
-/** Back-view pose with the left hand raised towards the handle, the arm foreshortened. */
-function reachPose(amount: number): TaPose {
+/**
+ * Back-view pose with the left hand raised towards the handle. The arm reaches away from the
+ * camera, so it is foreshortened by scaling the upper arm uniformly (which shortens the chain
+ * without shearing it). The hand is turned to point at the lever and scaled back to its own size.
+ */
+function reachPose(amount: number, lift = 0): TaPose {
   const scale = ROOM_SCALE;
   const shoulder = {
     x: ROOM.taAtDoor.x - 80 * scale,
     y: ROOM.taAtDoor.groundY + (206 - 800) * scale,
   };
-  const dx = HAND_TARGET.x - shoulder.x;
-  const dy = HAND_TARGET.y - shoulder.y;
+  const dx = WRIST_TARGET.x - shoulder.x;
+  const dy = WRIST_TARGET.y - shoulder.y;
   const angle = (Math.atan2(-dx, dy) * 180) / Math.PI;
   const reach = Math.hypot(dx, dy) / (272 * scale);
   const lerp = (a: number, z: number) => a + (z - a) * amount;
+  const k = lerp(1, reach);
+  const armAngle = lerp(4, angle) + lift;
+  // Pointing towards screen left is +90 in the hanging-limb convention.
+  const handAngle = lerp(0, 90 - angle);
+  const handSize = lerp(1, 0.85) / k;
   return mergePoses(STAND, {
-    leftUpperArm: { rotation: lerp(4, angle + 4), scaleY: lerp(1, reach * 0.9) },
-    leftForearm: { rotation: lerp(-6, -8), scaleY: lerp(1, reach * 1.1) },
-    leftHand: { rotation: lerp(0, 40), scaleY: lerp(1, 0.75), scaleX: lerp(1, 0.9) },
+    leftUpperArm: { rotation: armAngle, scaleX: k, scaleY: k, dy: -lift * 0.4 },
+    leftForearm: { rotation: lerp(-6, 0) },
+    leftHand: { rotation: handAngle, scaleX: handSize, scaleY: handSize },
     head: { rotation: lerp(0, -2) },
     rightUpperArm: { rotation: -2 },
   });
@@ -783,7 +795,7 @@ function doorTa(b: Build): void {
   const ready = reachPose(1);
   const tense = mergePoses(ready, {
     neck: { dy: 5 },
-    leftUpperArm: { ...(ready.leftUpperArm ?? {}), dy: -4 },
+    leftUpperArm: { ...(ready.leftUpperArm ?? {}), dy: -3 },
     rightUpperArm: { rotation: -2, dy: -6 },
     torso: { rotation: 0, scaleY: 1 },
   });
@@ -802,7 +814,7 @@ function doorTa(b: Build): void {
     // Anticipation: a small lift of the shoulder before the arm moves.
     {
       time: reachStart + 0.4,
-      pose: mergePoses(reachPose(0.15), { leftUpperArm: { rotation: 8, dy: -3 } }),
+      pose: reachPose(0.12, 4),
       easing: 'easeInOut',
     },
     { time: reached, pose: ready, easing: 'easeOut' },
@@ -965,7 +977,7 @@ function s09(b: Build): void {
   const ready = reachPose(1);
   const tense = mergePoses(ready, {
     neck: { dy: 5 },
-    leftUpperArm: { ...(ready.leftUpperArm ?? {}), dy: -4 },
+    leftUpperArm: { ...(ready.leftUpperArm ?? {}), dy: -3 },
     rightUpperArm: { rotation: -2, dy: -6 },
   });
   const tighter = mergePoses(tense, {

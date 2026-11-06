@@ -1,11 +1,14 @@
 # Project status
 
-Last updated: 2026-11-05. Branch: `integrate/timing-and-style-rjjke1`, not yet merged into `main`.
+Last updated: 2026-11-06. Branch: `integrate/timing-and-style-rjjke1`, not yet merged into `main`.
 
 `main` holds Phase 1, the timing engine and the style labs (PR #4). This branch adds the first
 approved character, **Harmonie (CHR-001)**, and her first episode, **The Hollow Bell Crypt**: a 60 s
 vertical short rendered to MP4. See [Harmonie](../creative/harmonie.md) and
-[the episode](../../projects/harmonie/hollow-bell-crypt/README.md).
+[the episode](../../projects/harmonie/hollow-bell-crypt/README.md). It also adds a second film,
+**DON'T LOOK BACK (อย่าหันกลับไป)**, with a new character, **Ta (CHR-002)**. See
+[its README](../../projects/ta-dont-look-back/README.md) and
+[status](../../projects/ta-dont-look-back/reports/production-status.md).
 
 ## Overall plan
 
@@ -20,6 +23,8 @@ vertical short rendered to MP4. See [Harmonie](../creative/harmonie.md) and
 | Visual QA review of the style labs     | Done, with open issues                                     |
 | Harmonie (CHR-001) design and rig      | Done, verified in Chromium. Not yet watched by a person    |
 | Episode: The Hollow Bell Crypt         | Video done without narration. Voice needs an API key       |
+| Ta (CHR-002) rig, side and back views  | Done, verified in Chromium                                 |
+| Film: DON'T LOOK BACK                  | Video done with sound effects. Voices not yet generated    |
 | Other Phase 2 work and later phases    | Not authorized                                             |
 
 ## Implemented
@@ -46,6 +51,11 @@ vertical short rendered to MP4. See [Harmonie](../creative/harmonie.md) and
   a synthesised soundtrack, and `npm run render:episode` to a verified H.264/AAC MP4.
 - Harmonie (CHR-001): four-view turnaround, 21-node rig, leg IK, seven poses, a 2560x1800 SVG sheet,
   a rig SVG, and a 24 fps preview on twos (`?view=harmonie`). See [Harmonie](../creative/harmonie.md).
+- Shape tracks: path morphing between keyed outlines with the same command structure.
+- A `latin` text font (Noto Sans) next to Noto Sans Thai.
+- Shared episode code in `src/episodes/shared/`, and `render:episode -- --episode=<id>`.
+- DON'T LOOK BACK: 11 shots, Ta (CHR-002), one bedroom, a morphing shadow, bilingual subtitles,
+  SRT/VTT, equal choices, synthesised sound, and a Gemini TTS script for two voices (`voices:ta`).
 
 ## Verification
 
@@ -57,9 +67,9 @@ clean `npm ci`. Earlier phases were also verified on Windows 11, Node 24.14.1.
 | `npm run format:check`   | Pass                                                       |
 | `npm run typecheck`      | Pass                                                       |
 | `npm run lint`           | Pass                                                       |
-| `npm test`               | Pass, 303 tests                                            |
+| `npm test`               | Pass, 332 tests                                            |
 | `npm run build`          | Pass                                                       |
-| `npm run test:e2e`       | Pass, 88 tests                                             |
+| `npm run test:e2e`       | Pass, 94 tests                                             |
 | `npm run capture`        | Pass, 45 setups                                            |
 | `npm run build:harmonie` | Committed SVG files match the generated output (unit test) |
 | Screenshots viewed       | Yes. See [visual QA](../production/visual-qa.md)           |
@@ -83,6 +93,8 @@ clean `npm ci`. Earlier phases were also verified on Windows 11, Node 24.14.1.
 - Technical demos only. They are not artwork, and make no claim of visual fidelity.
 - The episode has no narration until a Gemini (or Google Cloud TTS) key is provided, and nobody has
   watched it at speed with sound. See [its status](../../projects/harmonie/hollow-bell-crypt/reports/production-status.md).
+- DON'T LOOK BACK has no voices yet (Gemini free-tier quota), so its subtitles use planned windows.
+  See [its status](../../projects/ta-dont-look-back/reports/production-status.md).
 - Harmonie: only the side view is animated, the walk is in place, cloth moves as rigid pieces, and no
   person has watched the motion. See [her open issues](../creative/harmonie.md#visual-qa-version-1).
 - `npm audit` (including dev tools) reports 10 moderate findings from `minimatch` through ESLint

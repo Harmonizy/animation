@@ -58,6 +58,10 @@ Siblings sort by `layer`, with ties in declaration order. Children draw above th
 orders siblings only, so a child cannot move behind its parent's siblings. A negative `layer` draws
 the child behind its parent. Root nodes sort by plane first, then by layer.
 
+Scenes may carry `shapeTracks`: keyed outlines for a path node, interpolated point by point, so a
+shape can deform over time (the shadow in DON'T LOOK BACK). Every key must use the same path commands
+in the same order as the node. Text shapes take `font: 'thai' | 'latin'` (Noto Sans Thai or Noto Sans).
+
 `depth` (default 0) then reorders the drawn nodes **within each root**, independent of the hierarchy.
 Equal depths keep the order above, so a tree that sets no depth draws exactly as before, and depth
 never moves a node in front of or behind another root. Character rigs use it, because a cloak that

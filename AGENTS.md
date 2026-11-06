@@ -15,7 +15,10 @@ named `animation`. The owner communicates in Thai; code, identifiers and docs ar
   Silhouette foundation and its neutral labs, and the character design and rig of **Harmonie
   (CHR-001)**. See [docs/creative/harmonie.md](docs/creative/harmonie.md). The episode **The Hollow
   Bell Crypt**, using exactly the owner's script, storyboard, world rules and prices in
-  `projects/harmonie/hollow-bell-crypt/episode.json`.
+  `projects/harmonie/hollow-bell-crypt/episode.json`. The short **DON'T LOOK BACK** and its
+  character **Ta (CHR-002)**, using exactly the owner's story and storyboard in
+  `projects/ta-dont-look-back/episode.json`: the shadow's identity is never revealed and Ta's choice
+  is never made.
 - **Not authorized:** other stories or scripts, other named characters, any story beyond that
   episode's script (Harmonie's backstory, relationships, powers, the employer, what she buys),
   further world lore, 3D, or later phases, until the owner approves them.

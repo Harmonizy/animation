@@ -1,0 +1,15 @@
+{
+  "language": "th-TH",
+  "voice": {
+    "role": "The voice behind Ta: calm, flat, natural, unnervingly close. No effects.",
+    "gemini": "Enceladus"
+  },
+  "lines": [
+    {
+      "shot": "S08",
+      "text": "อย่าออกไปจากห้องนี้",
+      "start": 39,
+      "end": 42.6
+    }
+  ]
+}

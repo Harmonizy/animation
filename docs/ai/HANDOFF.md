@@ -7,7 +7,8 @@ Written so that the next person or AI assistant needs no chat history. Rules are
 
 - Repository: `Harmonizy/animation` (**public**). Local folder: `C:\Users\gotji\Music\animation`.
 - `main` holds Phase 1, the timing engine and the style labs. PR #4 merged them, with CI passing.
-- `integrate/timing-and-style-rjjke1` adds Harmonie (CHR-001) and the episode The Hollow Bell Crypt.
+- `integrate/timing-and-style-rjjke1` adds Harmonie (CHR-001), the episode The Hollow Bell Crypt,
+  and the film DON'T LOOK BACK with Ta (CHR-002).
   It is pushed but has no PR yet.
 - The older `phase-*` branches were merged as a stack and are no longer used for new work.
 - Phase 1, the timing engine, the style labs and Harmonie are implemented and verified. See [status](PROJECT_STATUS.md).
@@ -55,6 +56,10 @@ Start with `src/main.ts`, then:
 - `projects/harmonie/hollow-bell-crypt/episode.json`: the episode's single source of timing, text,
   sound and prices. Art is in `src/episodes/hollow-bell-crypt/`. Read its
   [README](../../projects/harmonie/hollow-bell-crypt/README.md) for the render steps.
+- `src/characters/ta/`: Ta's rig (side and back), geometry and poses with leg IK.
+- `projects/ta-dont-look-back/episode.json`: DON'T LOOK BACK's shots, lines, subtitles and sound cues.
+  Art is in `src/episodes/ta-dont-look-back/`; shared episode helpers in `src/episodes/shared/`.
+  Read its [README](../../projects/ta-dont-look-back/README.md).
 
 ## Things that are easy to get wrong
 
@@ -71,6 +76,11 @@ Start with `src/main.ts`, then:
 - Episode cuts must fall on whole frames at 24 fps, and every capture time in tests must too.
 - JSON imports need `with { type: 'json' }`, or Playwright's loader rejects them.
 - Text is drawn by the renderer, so pages with text must load Noto Sans Thai before the first frame.
+- Shape-track keys must all have the same path commands in the same order, or validation fails.
+- Scale a rig part uniformly. A non-uniform scale on a parent shears its rotated children.
+- `mergePoses` replaces a node's whole value. Pass every field the node needs, not only the change.
+- Ta's shadow must not change from 0.5 s before the voice. A unit test fails if it does.
+- Don't run e2e tests during a render: both use `vite build` and `dist/`.
 - Harmonie's left and right are her own. The side rig is her left profile and must not be mirrored.
 - After changing Harmonie's geometry or poses, run `npm run build:harmonie`, look at the sheet, and
   commit the SVG files. A unit test fails if they are stale.
@@ -86,7 +96,8 @@ Start with `src/main.ts`, then:
 
 ## Waiting on the owner
 
-1. A Gemini API key as `GEMINI_API_KEY` (or a Google Cloud TTS key), for the episode's narration.
+1. A Gemini API key as `GEMINI_API_KEY` (or a Google Cloud TTS key), for the episode's narration,
+   and a TTS quota for DON'T LOOK BACK's 10 lines (`npm run voices:ta`), or recorded voices.
 2. Watching the episode at speed with sound, and review of Harmonie's sheet and the labs.
 3. Reading the GSAP license if the studio may be distributed as a tool.
 

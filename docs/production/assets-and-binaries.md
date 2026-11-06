@@ -21,6 +21,7 @@ terms. The asset manifest is planned for Phase 3; until then, an asset needs own
 | `assets/characters/harmonie/harmonie-rig.svg`             | As above                                                                                                                                 |
 
 | Noto Sans Thai (npm `@fontsource/noto-sans-thai`) | The Noto Project Authors, SIL Open Font License 1.1. Added 2026-11-05, unchanged |
+| Noto Sans (npm `@fontsource/noto-sans`) | The Noto Project Authors, SIL Open Font License 1.1. Added 2026-11-06, unchanged |
 | Episode music and sound effects | Synthesised by `scripts/episode-audio.py` from this repository's code. Not committed |
 
 Both SVG files are text files written by code in `src/characters/harmonie/`, which was written with an AI
